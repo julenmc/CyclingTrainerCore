@@ -1,4 +1,4 @@
-﻿using Route.Reader.Mock;
+﻿using Route.Test.Reader.Mock;
 using Route.Reader;
 
 namespace Route.Test.Route.IrregularMount
@@ -12,11 +12,11 @@ namespace Route.Test.Route.IrregularMount
         public void SetUp()
         {
             List<IReader.PointInfo> points = new List<IReader.PointInfo>();
-            points.Add(new IReader.PointInfo(0, 0));
-            points.Add(new IReader.PointInfo(1, 100));
-            points.Add(new IReader.PointInfo(2, 200));
-            points.Add(new IReader.PointInfo(2.8, 200));
-            points.Add(new IReader.PointInfo(4, 300));
+            points.Add(new IReader.PointInfo(0, 0, 0));
+            points.Add(new IReader.PointInfo(1, 100, 0));
+            points.Add(new IReader.PointInfo(2, 200, 0));
+            points.Add(new IReader.PointInfo(2.8, 200, 0));
+            points.Add(new IReader.PointInfo(4, 300, 0));
             ReaderMock reader = new ReaderMock(points);
 
             route = new RouteRepository(reader);
@@ -53,17 +53,17 @@ namespace Route.Test.Route.IrregularMount
         public void SetUp()
         {
             List<IReader.PointInfo> points = new List<IReader.PointInfo>();
-            points.Add(new IReader.PointInfo(0, 0));
-            points.Add(new IReader.PointInfo(1, 100));
-            points.Add(new IReader.PointInfo(2, 200));
-            points.Add(new IReader.PointInfo(2.8, 200));
-            points.Add(new IReader.PointInfo(4, 300));
-            points.Add(new IReader.PointInfo(4.2, 280));
-            points.Add(new IReader.PointInfo(5, 350));
-            points.Add(new IReader.PointInfo(6, 300));
-            points.Add(new IReader.PointInfo(7, 250));
-            points.Add(new IReader.PointInfo(8, 200));
-            points.Add(new IReader.PointInfo(9, 150));
+            points.Add(new IReader.PointInfo(0, 0, 0));
+            points.Add(new IReader.PointInfo(1, 100, 0));
+            points.Add(new IReader.PointInfo(2, 200, 0));
+            points.Add(new IReader.PointInfo(2.8, 200, 0));
+            points.Add(new IReader.PointInfo(4, 300, 0));
+            points.Add(new IReader.PointInfo(4.2, 280, 0));
+            points.Add(new IReader.PointInfo(5, 350, 0));
+            points.Add(new IReader.PointInfo(6, 300, 0));
+            points.Add(new IReader.PointInfo(7, 250, 0));
+            points.Add(new IReader.PointInfo(8, 200, 0));
+            points.Add(new IReader.PointInfo(9, 150, 0));
             ReaderMock reader = new ReaderMock(points);
 
             route = new RouteRepository(reader);

@@ -1,5 +1,6 @@
 ﻿using Route.Reader;
 using NLog;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Route
 {
@@ -8,7 +9,7 @@ namespace Route
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         public static List<Mountain> GetMountains(List<IReader.PointInfo> points)
         {
-            IReader.PointInfo forcePoint = new IReader.PointInfo(0,0);
+            IReader.PointInfo forcePoint = new IReader.PointInfo(0,0,0);
             List<Mountain> list = new List<Mountain>();
             int id = 1;
             Mountain mount = new Mountain(id);
@@ -74,7 +75,7 @@ namespace Route
             {
                 list.Add(mount);
             }
-            else if ((r == Result.EndWarning || r == Result.Continue) && mount.CheckLastPoint(points.Last().Alt))
+            else if ((r == Result.EndWarning || r == Result.Continue) && mount.CheckLastPoint(points.Last()))
             {
                 list.Add(mount);
             }
@@ -111,11 +112,8 @@ namespace Route
             Slope = 0;
             MaxSlope = 0;
             _points = new List<IReader.PointInfo>();
-            _pendingPoints = new List<IReader.PointInfo>();
-            _pendingForcePoints = new List<IReader.PointInfo>();
         }
 
-        private static readonly int SlopeCheckMinDistance = 40;
         private static readonly int PassReqRows = 6;
         private static readonly int PassCheckRows = 7;
 
@@ -150,29 +148,18 @@ namespace Route
         };
 
         private List<IReader.PointInfo> _points;
-        private List<IReader.PointInfo> _pendingPoints;
-        private List<IReader.PointInfo> _pendingForcePoints;
 
         private bool _isFirstPoint = true;
         private double _prevDistance = 0;
         private double _prevAlt = 0;
-        private double _auxDistance = 0;
-        private double _prevAuxDistance = 0;
 
         private Result AddPoint(IReader.PointInfo p)
         {
             if (_isFirstPoint == false)
             {
-                double dist_diff = (p.Len * 1000) - _prevDistance - _auxDistance;
-                _auxDistance += dist_diff;
+                double dist_diff = (p.Len * 1000) - _prevDistance;
 
-                if (_auxDistance < SlopeCheckMinDistance)
-                {
-                    _pendingPoints.Add(p);
-                    return Result.Continue;
-                }
-
-                double slope = ((p.Alt - _prevAlt) / _auxDistance) * 100;
+                double slope = p.Slope;
 
                 if (slope < 2)
                 {       // If downhill port might end
@@ -183,32 +170,29 @@ namespace Route
                     MaxSlope = slope;
                 }
 
-                Lenght += _auxDistance;
+                Lenght += dist_diff;
                 if (p.Alt > _prevAlt) Elevation += p.Alt - _prevAlt;
                 if (p.Alt > MaxAltitude) MaxAltitude = p.Alt;
                 Slope = (Elevation / Lenght) * 100;
 
 
-                _auxDistance = 0;  // Reset
                 _prevAlt = p.Alt;
                 _prevDistance = p.Len * 1000;
-                _points.AddRange(_pendingPoints);
-                _pendingPoints.Clear();
+                _points.Add(p);
                 return Result.Continue;
             }
             else
             {
                 _isFirstPoint = false;
+                _points.Add(p);
                 InitAltitude = p.Alt;
                 InitKm = p.Len;
-                _prevAuxDistance = p.Len * 1000;
                 _prevAlt = p.Alt;
                 _prevDistance = p.Len * 1000;
                 return Result.Start;
             }
         }
 
-        private double _forceAuxDistance = 0;
         private double _forcePrevAuxDistance = 0;
         private void ForcePoint(IReader.PointInfo p) 
         {
@@ -216,16 +200,9 @@ namespace Route
 
             double _distDiff = (p.Len * 1000) - _forcePrevAuxDistance;
             _forcePrevAuxDistance = p.Len * 1000;
-            _forceAuxDistance += _distDiff;
 
-            if (_forceAuxDistance < SlopeCheckMinDistance)
-            {
-                _pendingForcePoints.Add(p);
-                return;
-            }
-
-            double _slope = ((p.Alt - _prevAlt) / _forceAuxDistance) * 100;
-            Lenght += _forceAuxDistance;
+            double _slope = p.Slope;
+            Lenght += _distDiff;
             if (p.Alt > _prevAlt) Elevation += p.Alt - _prevAlt;
             if (p.Alt > MaxAltitude) MaxAltitude = p.Alt;
 
@@ -234,16 +211,13 @@ namespace Route
 
             _prevAlt = p.Alt;
             _prevDistance = p.Len * 1000;
-            _forceAuxDistance = 0;	// Reset
-            _points.AddRange(_pendingForcePoints);
-            _pendingForcePoints.Clear();
+            _points.Add(p);
         }
 
         private bool _hasToCheckSlope = true;
         private bool _hasToCheckAltitude = true;
         private double _checkPrevAuxDistance = 0;
         private double _checkPrevAlt = 0;
-        private double _checkAuxDistance = 0;
         private Result Check(IReader.PointInfo p)
         {
             if (_checkPrevAuxDistance == 0)
@@ -254,13 +228,9 @@ namespace Route
 
             double _distDiff = (p.Len * 1000) - _checkPrevAuxDistance;
             _checkPrevAuxDistance = p.Len * 1000;
-            _checkAuxDistance += _distDiff;
 
-            if (_checkAuxDistance < SlopeCheckMinDistance) return Result.EndWarning;
-
-            double _pointSlope = ((p.Alt - _checkPrevAlt) / _checkAuxDistance) * 100;              // Pendiente en el punto
+            double _pointSlope = p.Slope;              // Pendiente en el punto
             double _checkSlope = ((p.Alt - _prevAlt) / (p.Alt * 1000 - _prevDistance)) * 100;          // Pendiente total en el check
-            _checkAuxDistance = 0;
             _checkPrevAlt = p.Alt;
 
             _hasToCheckAltitude = (p.Alt > MaxAltitude) ? false : true;
@@ -288,27 +258,28 @@ namespace Route
             }
         }
 
-        private bool CheckLastPoint(double a)
+        private bool CheckLastPoint(IReader.PointInfo p)
         {
-            if (_auxDistance > 0 && !_isFirstPoint)
+            if (!_isFirstPoint)
             {
-                double slope = ((a - _prevAlt) / _auxDistance) * 100;
+                double slope = p.Slope;
 
                 if (slope < 0)
                 {       // Si baja cierro puerto
-                    return IsPort(slope, a) ? true : false;
+                    return IsPort(slope, p.Alt) ? true : false;
                 }
                 else if (slope > MaxSlope)
                 {
                     MaxSlope = slope;
                 }
 
-                Lenght += _auxDistance;
-                if (a > _prevAlt) Elevation += a - _prevAlt;
-                if (a > MaxAltitude) MaxAltitude = a;
+                Lenght += p.Len * 1000 - _prevDistance;
+                if (p.Alt > _prevAlt) Elevation += p.Alt - _prevAlt;
+                if (p.Alt > MaxAltitude) MaxAltitude = p.Alt;
                 Slope = (Elevation / Lenght) * 100;
+                _points.Add(p);
             }
-            return IsPort(0, 0);
+            return IsPort(p.Slope, p.Alt);
         }
 
         private bool IsPort(double s, double a)
@@ -322,7 +293,6 @@ namespace Route
                 }
                 if (i == MountReq.GetLength(0) - 1)
                 {
-                    _auxDistance = 0;
                     return false;
                 }
             }

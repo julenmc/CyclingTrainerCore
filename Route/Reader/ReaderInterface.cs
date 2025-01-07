@@ -11,12 +11,14 @@ namespace Route.Reader
         public class PointInfo
         {
             public double Len { get; }
-            public double Alt {  get; }
-
-            public PointInfo(double x, double y)
+            public double Alt { get; }
+            public double Slope { private set;  get; }
+            
+            public PointInfo(double x, double y, double slope)
             {
                 Len = x;
                 Alt = y;
+                Slope = slope;
             }
         }
 
@@ -30,6 +32,7 @@ namespace Route.Reader
         public bool Read();
         public double GetLenght();
         public double GetElevation();
+        public string GetName();
         public List<PointInfo> GetAllPoints();
     }
 }

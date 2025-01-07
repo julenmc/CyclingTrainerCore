@@ -1,5 +1,5 @@
 ﻿using Route.Reader;
-using Route.Reader.Mock;
+using Route.Test.Reader.Mock;
 
 namespace Route.Test.Route.RegularMount
 {
@@ -10,11 +10,11 @@ namespace Route.Test.Route.RegularMount
         public void Basic()
         {
             List<IReader.PointInfo> points = new List<IReader.PointInfo>();
-            points.Add(new IReader.PointInfo(0, 0));
-            points.Add(new IReader.PointInfo(1, 0));
-            points.Add(new IReader.PointInfo(2, 0));
-            points.Add(new IReader.PointInfo(3, 0));
-            points.Add(new IReader.PointInfo(4, 0));
+            points.Add(new IReader.PointInfo(0, 0, 0));
+            points.Add(new IReader.PointInfo(1, 0, 0));
+            points.Add(new IReader.PointInfo(2, 0, 0));
+            points.Add(new IReader.PointInfo(3, 0, 0));
+            points.Add(new IReader.PointInfo(4, 0, 0));
             ReaderMock reader = new ReaderMock(points);
 
             RouteRepository route = new RouteRepository(reader);
@@ -33,12 +33,12 @@ namespace Route.Test.Route.RegularMount
         public void SetUp()
         {
             List<IReader.PointInfo> points = new List<IReader.PointInfo>();
-            points.Add(new IReader.PointInfo(0, 0));
-            points.Add(new IReader.PointInfo(1, 100));
-            points.Add(new IReader.PointInfo(2, 200));
-            points.Add(new IReader.PointInfo(3, 100));
-            points.Add(new IReader.PointInfo(4, 100));
-            points.Add(new IReader.PointInfo(4.01, 100));
+            points.Add(new IReader.PointInfo(0, 0, 0));
+            points.Add(new IReader.PointInfo(1, 100, 0));
+            points.Add(new IReader.PointInfo(2, 200, 0));
+            points.Add(new IReader.PointInfo(3, 100, 0));
+            points.Add(new IReader.PointInfo(4, 100, 0));
+            points.Add(new IReader.PointInfo(4.01, 100, 0));
             ReaderMock reader = new ReaderMock(points);
 
             route = new RouteRepository(reader);
@@ -75,12 +75,12 @@ namespace Route.Test.Route.RegularMount
         public void SetUp()
         {
             List<IReader.PointInfo> points = new List<IReader.PointInfo>();
-            points.Add(new IReader.PointInfo(0, 0));
-            points.Add(new IReader.PointInfo(1, 100));
-            points.Add(new IReader.PointInfo(2, 200));
-            points.Add(new IReader.PointInfo(3, 200));
-            points.Add(new IReader.PointInfo(4, 200));
-            points.Add(new IReader.PointInfo(4.01, 200));
+            points.Add(new IReader.PointInfo(0, 0, 0));
+            points.Add(new IReader.PointInfo(1, 100, 0));
+            points.Add(new IReader.PointInfo(2, 200, 0));
+            points.Add(new IReader.PointInfo(3, 200, 0));
+            points.Add(new IReader.PointInfo(4, 200, 0));
+            points.Add(new IReader.PointInfo(4.01, 200, 0));
             ReaderMock reader = new ReaderMock(points);
 
             route = new RouteRepository(reader);
@@ -117,12 +117,12 @@ namespace Route.Test.Route.RegularMount
         public void SetUp()
         {
             List<IReader.PointInfo> points = new List<IReader.PointInfo>();
-            points.Add(new IReader.PointInfo(0, 0));
-            points.Add(new IReader.PointInfo(1, 100));
-            points.Add(new IReader.PointInfo(2, 200));
-            points.Add(new IReader.PointInfo(3, 300));
-            points.Add(new IReader.PointInfo(4, 400));
-            points.Add(new IReader.PointInfo(4.01, 401));
+            points.Add(new IReader.PointInfo(0, 0, 0));
+            points.Add(new IReader.PointInfo(1, 100, 0));
+            points.Add(new IReader.PointInfo(2, 200, 0));
+            points.Add(new IReader.PointInfo(3, 300, 0));
+            points.Add(new IReader.PointInfo(4, 400, 0));
+            points.Add(new IReader.PointInfo(4.01, 401, 0));
             ReaderMock reader = new ReaderMock(points);
 
             route = new RouteRepository(reader);
@@ -146,7 +146,7 @@ namespace Route.Test.Route.RegularMount
             Assert.AreEqual(0, route.Mountains[0].InitAltitude);
             Assert.AreEqual(401, route.Mountains[0].MaxAltitude);
             Assert.AreEqual(10, route.Mountains[0].Slope);
-            Assert.AreEqual(10, route.Mountains[0].MaxSlope);
+            Assert.AreEqual(10, route.Mountains[0].MaxSlope, 0.01);
         }
     }
 
@@ -159,12 +159,12 @@ namespace Route.Test.Route.RegularMount
         public void SetUp()
         {
             List<IReader.PointInfo> points = new List<IReader.PointInfo>();
-            points.Add(new IReader.PointInfo(0, 0));
-            points.Add(new IReader.PointInfo(1, 100));
-            points.Add(new IReader.PointInfo(2, 200));
-            points.Add(new IReader.PointInfo(3, 100));
-            points.Add(new IReader.PointInfo(5, 100));
-            points.Add(new IReader.PointInfo(6, 200));
+            points.Add(new IReader.PointInfo(0, 0, 0));
+            points.Add(new IReader.PointInfo(1, 100, 0));
+            points.Add(new IReader.PointInfo(2, 200, 0));
+            points.Add(new IReader.PointInfo(3, 100, 0));
+            points.Add(new IReader.PointInfo(5, 100, 0));
+            points.Add(new IReader.PointInfo(6, 200, 0));
             ReaderMock reader = new ReaderMock(points);
 
             route = new RouteRepository(reader);

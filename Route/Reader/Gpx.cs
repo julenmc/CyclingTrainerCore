@@ -30,10 +30,16 @@ namespace Route.Reader
             Elevation = 0;
         }
 
+        public string GetName()
+        {
+            return Path.GetFileName(_path);
+        }
+
         public bool Read()
         {
             try
             {
+                List<PointInfo> points = new List<PointInfo>();
                 FileStream fRead = new FileStream(_path, FileMode.Open, FileAccess.Read);
                 using (GpxReader reader = new GpxReader(fRead))
                 {
@@ -47,20 +53,24 @@ namespace Route.Reader
                             {
                                 Lenght += segment.TrackPoints.GetLength();
                                 _prevElevation = (segment.TrackPoints.StartPoint.Elevation != null) ? (double)segment.TrackPoints.StartPoint.Elevation : 0;
-                                double distance = 0;
-                                PointInfo info = new PointInfo(distance, _prevElevation);
-                                _points.Add(info);
+                                double totalDistance = 0;
+                                PointInfo info = new PointInfo(totalDistance, _prevElevation, 0);
+                                points.Add(info);
                                 for (int i = 1; i < segment.TrackPoints.Count; i++)
                                 {
                                     double elevation = (segment.TrackPoints[i].Elevation != null) ? (double)segment.TrackPoints[i].Elevation : 0;
-                                    distance += Math.Round(segment.TrackPoints[i].GetDistanceFrom(segment.TrackPoints[i - 1]),3);
-                                    info = new PointInfo(distance, elevation);
-                                    double diff = elevation - _prevElevation;
+                                    double distDiff = segment.TrackPoints[i].GetDistanceFrom(segment.TrackPoints[i - 1]);
+                                    totalDistance += Math.Round(distDiff, 3);
+                                    double altDiff = elevation - _prevElevation;
+                                    double slope = Math.Round(altDiff / (distDiff * 1000) * 100, 2);
+                                    info = new PointInfo(totalDistance, elevation, slope);
                                     _prevElevation = elevation;
-                                    if (diff > 0) Elevation += diff;
-                                    _points.Add(info);
+                                    if (altDiff > 0) Elevation += altDiff;
+                                    points.Add(info);
                                 }
                             }
+
+                            SmoothRoute(points);
                         }
                     }
                 }
@@ -86,6 +96,23 @@ namespace Route.Reader
         public List<PointInfo> GetAllPoints()
         {
             return _points; 
+        }
+
+        private static readonly double SmoothDistance = 0.025; // Kilometers
+        private void SmoothRoute(List<PointInfo> points)
+        {
+            int index = 0;
+            _points.Add(points[index]);
+            for (int i = 1; i < points.Count; i++)
+            {
+                if (points[i].Len - _points[index].Len >= SmoothDistance)
+                {
+                    double slope = (points[i].Alt - _points[index].Alt) / (points[i].Len - _points[index].Len) / 10;
+                    PointInfo point = new PointInfo(points[i].Len, points[i].Alt, slope);
+                    _points.Add(point);
+                    index++;
+                }
+            }
         }
     }
 }
