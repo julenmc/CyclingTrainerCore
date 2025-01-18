@@ -53,23 +53,31 @@ namespace Route.Reader
                             {
                                 Lenght += segment.TrackPoints.GetLength();
                                 _prevElevation = (segment.TrackPoints.StartPoint.Elevation != null) ? (double)segment.TrackPoints.StartPoint.Elevation : 0;
+                                double nextElevation = (segment.TrackPoints[1].Elevation != null) ? (double)segment.TrackPoints[1].Elevation : 0;
+                                double distDiff = segment.TrackPoints[1].GetDistanceFrom(segment.TrackPoints[0]);
+                                double slope = Math.Round((nextElevation - _prevElevation) / (distDiff * 1000) * 100, 2);
                                 double totalDistance = 0;
-                                PointInfo info = new PointInfo(totalDistance, _prevElevation, 0);
+                                PointInfo info = new PointInfo(totalDistance, _prevElevation, slope);
                                 points.Add(info);
-                                for (int i = 1; i < segment.TrackPoints.Count; i++)
+                                for (int i = 1; i < segment.TrackPoints.Count - 1; i++)
                                 {
                                     double elevation = (segment.TrackPoints[i].Elevation != null) ? (double)segment.TrackPoints[i].Elevation : 0;
-                                    double distDiff = segment.TrackPoints[i].GetDistanceFrom(segment.TrackPoints[i - 1]);
+                                    nextElevation = (segment.TrackPoints[i+1].Elevation != null) ? (double)segment.TrackPoints[i+1].Elevation : 0;
                                     totalDistance += Math.Round(distDiff, 3);
+                                    distDiff = segment.TrackPoints[i + 1].GetDistanceFrom(segment.TrackPoints[i]);
                                     double altDiff = elevation - _prevElevation;
-                                    double slope = Math.Round(altDiff / (distDiff * 1000) * 100, 2);
+                                    slope = Math.Round((nextElevation - elevation) / (distDiff * 1000) * 100, 2);
                                     info = new PointInfo(totalDistance, elevation, slope);
                                     _prevElevation = elevation;
                                     if (altDiff > 0) Elevation += altDiff;
                                     points.Add(info);
                                 }
+                                totalDistance += Math.Round(segment.TrackPoints[segment.TrackPoints.Count-1].GetDistanceFrom(segment.TrackPoints[segment.TrackPoints.Count-2]), 3);
+                                double el = (segment.TrackPoints.EndPoint.Elevation != null) ? (double)segment.TrackPoints.EndPoint.Elevation : 0;
+                                if (el > _prevElevation) Elevation += el - _prevElevation;
+                                info = new PointInfo(totalDistance, el, 0);
+                                points.Add(info);
                             }
-
                             SmoothRoute(points);
                         }
                     }
@@ -101,18 +109,19 @@ namespace Route.Reader
         private static readonly double SmoothDistance = 0.025; // Kilometers
         private void SmoothRoute(List<PointInfo> points)
         {
-            int index = 0;
-            _points.Add(points[index]);
-            for (int i = 1; i < points.Count; i++)
+            int arrayIndex = 0;
+            for (int i = 1; i < points.Count - 1; i++)
             {
-                if (points[i].Len - _points[index].Len >= SmoothDistance)
+                if (points[i].Len - points[arrayIndex].Len >= SmoothDistance)
                 {
-                    double slope = (points[i].Alt - _points[index].Alt) / (points[i].Len - _points[index].Len) / 10;
-                    PointInfo point = new PointInfo(points[i].Len, points[i].Alt, slope);
+                    double slope = (points[i].Alt - points[arrayIndex].Alt) / (points[i].Len - points[arrayIndex].Len) / 10;
+                    PointInfo point = new PointInfo(points[arrayIndex].Len, points[arrayIndex].Alt, slope);
                     _points.Add(point);
-                    index++;
+                    arrayIndex = i;
                 }
             }
+            PointInfo p = new PointInfo(points.Last().Len, points.Last().Alt, 0);
+            _points.Add(p);
         }
     }
 }
