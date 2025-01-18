@@ -47,5 +47,10 @@ namespace Cyclist
         {
             CurrentPower = power;
         }
+
+        public IReader.PointInfo GetCurrentPoint()
+        {
+            return _points[_index]; 
+        }
     }
 }
