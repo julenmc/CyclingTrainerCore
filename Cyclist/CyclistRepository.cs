@@ -8,17 +8,22 @@ namespace Cyclist
         public double Weight { private set; get; }
         public double Speed { private set; get; }
         public double CurrentPower { private set; get; }
+        public double KCaloriesBurned { private set; get; }
 
         private RouteRepository _routeRepo;
         private List<IReader.PointInfo> _points;
         private int _index;
         private double _dist;
 
+        private readonly static double EnergyEfficiency = 0.2;
+        private readonly static double JoulesToCalories = 4184;
+
         public CyclistRepository (double weight, RouteRepository route)
         {
             Weight = weight;
             Speed = 0;
             CurrentPower = 0;
+            KCaloriesBurned = 0;
 
             _routeRepo = route;
             _points = _routeRepo.GetAllPoints();
@@ -39,6 +44,7 @@ namespace Cyclist
                 _index++;
             }
             Speed = r.Item2;
+            KCaloriesBurned += CurrentPower * SpeedCalculator.DeltaTime / EnergyEfficiency / JoulesToCalories;
 
             return _dist;
         }
