@@ -8,16 +8,20 @@ namespace Route.Reader
 {
     public interface IReader
     {
-        public class PointInfo
+        public class SectorInfo
         {
-            public double Len { get; }
-            public double Alt { get; }
+            public double StartPoint { get; }
+            public double EndPoint { get; }
+            public double StartAlt {  get; }
+            public double EndAlt { get; }
             public double Slope { private set;  get; }
             
-            public PointInfo(double x, double y, double slope)
+            public SectorInfo(double sp, double ep, double sa, double ea, double slope)
             {
-                Len = x;
-                Alt = y;
+                StartPoint = sp;
+                EndPoint = ep;
+                StartAlt = sa;
+                EndAlt = ea;
                 Slope = slope;
             }
         }
@@ -33,6 +37,6 @@ namespace Route.Reader
         public double GetLenght();
         public double GetElevation();
         public string GetName();
-        public List<PointInfo> GetAllPoints();
+        public List<SectorInfo> GetAllSectors();
     }
 }

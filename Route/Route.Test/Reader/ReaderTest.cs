@@ -14,6 +14,9 @@ namespace Route.Test.Reader
 
             Assert.AreEqual(5, reader.GetLenght(), 0.01);
             Assert.AreEqual(200, reader.GetElevation());
+
+            Assert.AreEqual(5, reader.GetAllSectors().Last().EndPoint, 0.01);
+            Assert.AreEqual(300, reader.GetAllSectors().Last().EndAlt, 0.1);
         }
     }
 }

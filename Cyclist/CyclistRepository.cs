@@ -11,7 +11,7 @@ namespace Cyclist
         public double KCaloriesBurned { private set; get; }
 
         private RouteRepository _routeRepo;
-        private List<IReader.PointInfo> _points;
+        private List<IReader.SectorInfo> _points;
         private int _index;
         private double _dist;
 
@@ -40,7 +40,7 @@ namespace Cyclist
             // Update index with distance
             for (int i = _index; i < _points.Count; i++)
             {
-                if (_dist < _points[i].Len) break;
+                if (_dist < _points[i].EndPoint) break;
                 _index++;
             }
             Speed = r.Item2;
@@ -54,7 +54,7 @@ namespace Cyclist
             CurrentPower = power;
         }
 
-        public IReader.PointInfo GetCurrentPoint()
+        public IReader.SectorInfo GetCurrentPoint()
         {
             return _points[_index]; 
         }

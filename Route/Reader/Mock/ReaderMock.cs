@@ -8,33 +8,30 @@ namespace Route.Test.Reader.Mock
         private double _lenght;
         private double _elevation;
 
-        private List<PointInfo> _points;
+        private List<SectorInfo> _sectors;
 
-        public ReaderMock(List<PointInfo> p) 
+        public ReaderMock(List<SectorInfo> p) 
         { 
-            _points = new List<PointInfo>();
+            _sectors = new List<SectorInfo>();
             AssignSlopes(p);
         }
 
-        private void AssignSlopes(List<PointInfo> p)
+        private void AssignSlopes(List<SectorInfo> sectors)
         {
-            _points.Add(p.First());
-            for (int i = 1; i < p.Count; i++)
+            foreach (SectorInfo sector in sectors)
             {
-                double slope = (p[i].Alt - p[i-1].Alt) / (p[i].Len - p[i-1].Len) / 10;
-                PointInfo point = new PointInfo(p[i].Len, p[i].Alt, slope);
-                _points.Add(point);
+                double slope = (sector.EndAlt - sector.StartAlt) / (sector.EndPoint - sector.StartPoint) / 10;
+                SectorInfo point = new SectorInfo(sector.StartPoint, sector.EndPoint, sector.StartAlt, sector.EndAlt, slope);
+                _sectors.Add(point);
             }
         }
 
         public bool Read()
         {
-            _lenght = _points.Last().Len;
-            double _prevElevation = _points.First().Alt;
-            foreach (PointInfo point in _points)
+            _lenght = _sectors.Last().EndPoint;
+            foreach (SectorInfo sector in _sectors)
             {
-                double diff = point.Alt - _prevElevation;
-                _prevElevation = point.Alt;
+                double diff = sector.EndAlt - sector.StartAlt;
                 if (diff > 0) _elevation += diff;
             }
             return true;
@@ -55,9 +52,9 @@ namespace Route.Test.Reader.Mock
             return _elevation;
         }
 
-        public List<PointInfo> GetAllPoints()
+        public List<SectorInfo> GetAllSectors()
         {
-            return _points; 
+            return _sectors; 
         }
     }
 }

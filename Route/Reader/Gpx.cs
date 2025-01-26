@@ -18,14 +18,12 @@ namespace Route.Reader
 
         private string _path;
 
-        private List<PointInfo> _points;
-        private int _index = 0;
-        private double _prevElevation = 0;
+        private List<SectorInfo> _sectors;
 
         public Gpx(string p) 
         {
             _path = p;
-            _points = new List<PointInfo>();
+            _sectors = new List<SectorInfo>();
             Lenght = 0;
             Elevation = 0;
         }
@@ -39,7 +37,7 @@ namespace Route.Reader
         {
             try
             {
-                List<PointInfo> points = new List<PointInfo>();
+                List<SectorInfo> sectors = new List<SectorInfo>();
                 FileStream fRead = new FileStream(_path, FileMode.Open, FileAccess.Read);
                 using (GpxReader reader = new GpxReader(fRead))
                 {
@@ -52,33 +50,37 @@ namespace Route.Reader
                             foreach (GpxTrackSegment segment in segments)
                             {
                                 Lenght += segment.TrackPoints.GetLength();
-                                _prevElevation = (segment.TrackPoints.StartPoint.Elevation != null) ? (double)segment.TrackPoints.StartPoint.Elevation : 0;
+                                double prevDistance = 0;
+                                double prevElevation = (segment.TrackPoints.StartPoint.Elevation != null) ? (double)segment.TrackPoints.StartPoint.Elevation : 0;
                                 double nextElevation = (segment.TrackPoints[1].Elevation != null) ? (double)segment.TrackPoints[1].Elevation : 0;
-                                double distDiff = segment.TrackPoints[1].GetDistanceFrom(segment.TrackPoints[0]);
-                                double slope = Math.Round((nextElevation - _prevElevation) / (distDiff * 1000) * 100, 2);
-                                double totalDistance = 0;
-                                PointInfo info = new PointInfo(totalDistance, _prevElevation, slope);
-                                points.Add(info);
+                                double distance = Math.Round(segment.TrackPoints[1].GetDistanceFrom(segment.TrackPoints[0]), 3);
+                                double slope = Math.Round((nextElevation - prevElevation) / (distance * 1000) * 100, 2);
+                                SectorInfo info = new SectorInfo(0, distance, prevElevation, nextElevation, slope);
+                                sectors.Add(info);
                                 for (int i = 1; i < segment.TrackPoints.Count - 1; i++)
                                 {
                                     double elevation = (segment.TrackPoints[i].Elevation != null) ? (double)segment.TrackPoints[i].Elevation : 0;
                                     nextElevation = (segment.TrackPoints[i+1].Elevation != null) ? (double)segment.TrackPoints[i+1].Elevation : 0;
-                                    totalDistance += Math.Round(distDiff, 3);
-                                    distDiff = segment.TrackPoints[i + 1].GetDistanceFrom(segment.TrackPoints[i]);
-                                    double altDiff = elevation - _prevElevation;
+                                    prevDistance = sectors.Last().EndPoint;
+                                    distance = Math.Round(segment.TrackPoints[i + 1].GetDistanceFrom(segment.TrackPoints[i]), 3) + prevDistance;
+                                    double distDiff = distance - prevDistance;
+                                    double altDiff = elevation - prevElevation;
                                     slope = Math.Round((nextElevation - elevation) / (distDiff * 1000) * 100, 2);
-                                    info = new PointInfo(totalDistance, elevation, slope);
-                                    _prevElevation = elevation;
+                                    info = new SectorInfo(prevDistance, distance, prevElevation, elevation, slope);
+                                    prevElevation = elevation;
                                     if (altDiff > 0) Elevation += altDiff;
-                                    points.Add(info);
+                                    sectors.Add(info);
                                 }
-                                totalDistance += Math.Round(segment.TrackPoints[segment.TrackPoints.Count-1].GetDistanceFrom(segment.TrackPoints[segment.TrackPoints.Count-2]), 3);
+                                prevDistance = sectors.Last().EndPoint;
+                                distance = Math.Round(segment.TrackPoints[segment.TrackPoints.Count-1].GetDistanceFrom(segment.TrackPoints[segment.TrackPoints.Count-2]), 3) + prevDistance;
                                 double el = (segment.TrackPoints.EndPoint.Elevation != null) ? (double)segment.TrackPoints.EndPoint.Elevation : 0;
-                                if (el > _prevElevation) Elevation += el - _prevElevation;
-                                info = new PointInfo(totalDistance, el, 0);
-                                points.Add(info);
+                                if (el > prevElevation) Elevation += el - prevElevation;
+                                slope = Math.Round((el - prevElevation) / ((distance - prevDistance) * 1000) * 100, 2);
+                                info = new SectorInfo(prevDistance, distance, prevElevation, el, slope);
+                                sectors.Add(info);
                             }
-                            SmoothRoute(points);
+                            _sectors = Smoother.FirstSmooth(sectors);
+                            _sectors = Smoother.SecondSmooth(_sectors);
                         }
                     }
                 }
@@ -101,27 +103,9 @@ namespace Route.Reader
             return Elevation;
         }
 
-        public List<PointInfo> GetAllPoints()
+        public List<SectorInfo> GetAllSectors()
         {
-            return _points; 
-        }
-
-        private static readonly double SmoothDistance = 0.025; // Kilometers
-        private void SmoothRoute(List<PointInfo> points)
-        {
-            int arrayIndex = 0;
-            for (int i = 1; i < points.Count - 1; i++)
-            {
-                if (points[i].Len - points[arrayIndex].Len >= SmoothDistance)
-                {
-                    double slope = (points[i].Alt - points[arrayIndex].Alt) / (points[i].Len - points[arrayIndex].Len) / 10;
-                    PointInfo point = new PointInfo(points[arrayIndex].Len, points[arrayIndex].Alt, slope);
-                    _points.Add(point);
-                    arrayIndex = i;
-                }
-            }
-            PointInfo p = new PointInfo(points.Last().Len, points.Last().Alt, 0);
-            _points.Add(p);
+            return _sectors; 
         }
     }
 }

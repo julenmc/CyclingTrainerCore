@@ -22,14 +22,14 @@ namespace Route
             Lenght = Math.Round(_reader.GetLenght(), 2);
             Elevation = Math.Round(_reader.GetElevation(), 0);
 
-            Mountains = Mountain.GetMountains(_reader.GetAllPoints());
+            Mountains = Mountain.GetMountains(_reader.GetAllSectors());
 
             Log.Info("Analysis finished");
         }
 
-        public List<IReader.PointInfo> GetAllPoints()
+        public List<IReader.SectorInfo> GetAllPoints()
         {
-            return _reader.GetAllPoints();
+            return _reader.GetAllSectors();
         }
     }
 }

@@ -7,35 +7,35 @@ namespace Route
     public class Mountain
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static List<Mountain> GetMountains(List<IReader.PointInfo> points)
+        public static List<Mountain> GetMountains(List<IReader.SectorInfo> sectors)
         {
-            IReader.PointInfo forcePoint = new IReader.PointInfo(0,0,0);
+            IReader.SectorInfo forceSector = new IReader.SectorInfo(0,0,0,0,0);
             List<Mountain> list = new List<Mountain>();
             int id = 1;
             Mountain mount = new Mountain(id);
-            Result r = Result.Start;
+            Result r = Result.NoMountain;
 
-            foreach (IReader.PointInfo point in points)
+            foreach (IReader.SectorInfo sector in sectors)
             {
-                if (point.Len <= forcePoint.Len && point.Len != 0)
+                if (sector.EndPoint <= forceSector.EndPoint && sector.EndPoint != 0)
                 {
-                    Log.Debug($"Forcing mount point at {Math.Round(point.Len,3)}km ({point.Alt}m) until {Math.Round(forcePoint.Len,3)}km");
-                    mount.ForcePoint(point);
+                    Log.Debug($"Forcing mount point at {Math.Round(sector.EndPoint,3)}km ({sector.EndAlt}m) until {Math.Round(forceSector.EndPoint,3)}km");
+                    mount.ForcePoint(sector);
                 }
                 else
                 {
-                    r = mount.AddPoint(point);
+                    r = mount.AddSector(sector);
                     if (r == Result.EndWarning)
                     {
-                        Log.Debug($"Mountain could end at km {Math.Round(point.Len, 3)} ({point.Alt}m)");
-                        int index = points.FindIndex(i => i.Len == point.Len);
-                        r = mount.Check(points[index]);
-                        while (index < points.Count)
+                        Log.Debug($"Mountain could end at km {Math.Round(sector.StartPoint, 3)} ({sector.StartAlt}m)");
+                        int index = sectors.FindIndex(i => i.EndPoint == sector.EndPoint);
+                        r = mount.Check(sectors[index]);
+                        while (index < sectors.Count)
                         {
                             if (r == Result.EndWarning)
                             {
                                 index++;
-                                r = mount.Check(points[index]);
+                                r = mount.Check(sectors[index]);
                             }
                             else
                             {
@@ -45,7 +45,7 @@ namespace Route
 
                         if (r == Result.MountainEnd)
                         {
-                            Log.Debug($"Mountain ended at km {Math.Round(point.Len, 3)} ({point.Alt}m)");
+                            Log.Debug($"Mountain ended at km {Math.Round(sector.EndPoint, 3)} ({sector.EndAlt}m)");
                             list.Add(mount);
                             id++;
                             mount.EndPort();
@@ -53,30 +53,35 @@ namespace Route
                         }
                         else if (r == Result.Continue) 
                         {
-                            Log.Debug($"Mountain continues at km {Math.Round(points[index].Len,3)}");
-                            mount.ForcePoint(point);
-                            forcePoint = points[index];
+                            Log.Debug($"Mountain continues at km {Math.Round(sectors[index].EndPoint,3)}");
+                            mount.ForcePoint(sector);
+                            forceSector = sectors[index];
                         }
                         else
                         {
-                            Log.Error($"Should not be here at km {Math.Round(point.Len,3)} ({point.Alt}m)");
+                            Log.Error($"Should not be here at km {Math.Round(sector.EndPoint,3)} ({sector.EndAlt}m)");
                         }
                     }
                     else if (r == Result.NoMountain)
                     {
-                        Log.Debug($"No mountain at km {Math.Round(point.Len, 3)}");
+                        Log.Debug($"No mountain at km {Math.Round(sector.EndPoint, 3)}");
                         mount.EndPort();
                         mount = new Mountain(id);
                     }
                 }
             }
 
-            if (forcePoint == points.Last())
+            if (forceSector == sectors.Last())
             {
                 list.Add(mount);
             }
-            else if ((r == Result.EndWarning || r == Result.Continue) && mount.CheckLastPoint(points.Last()))
+            //else if ((r == Result.EndWarning || r == Result.Continue) && mount.CheckLastPoint(sectors.Last()))
+            //{
+            //    list.Add(mount);
+            //}
+            else if (r == Result.Continue)
             {
+                mount.EndPort();
                 list.Add(mount);
             }
 
@@ -85,7 +90,6 @@ namespace Route
 
         private enum Result
         {
-            Start,
             Continue,
             EndWarning,
             MountainEnd,
@@ -111,7 +115,7 @@ namespace Route
             MaxAltitude = 0;
             Slope = 0;
             MaxSlope = 0;
-            _points = new List<IReader.PointInfo>();
+            _sectors = new List<IReader.SectorInfo>();
         }
 
         private static readonly int PassReqRows = 6;
@@ -147,94 +151,94 @@ namespace Route
             }
         };
 
-        private List<IReader.PointInfo> _points;
+        private List<IReader.SectorInfo> _sectors;
 
         private bool _isFirstPoint = true;
-        private double _prevDistance = 0;
-        private double _prevAlt = 0;
 
-        private Result AddPoint(IReader.PointInfo p)
+        private Result AddSector(IReader.SectorInfo sector)
         {
-            if (_isFirstPoint == false)
+            if (!_isFirstPoint)
             {
-                double dist_diff = (p.Len * 1000) - _prevDistance;
-
-                double slope = p.Slope;
+                double distDiff = (sector.EndPoint - sector.StartPoint) * 1000;
+                double slope = sector.Slope;
 
                 if (slope < 2)
                 {       // If downhill port might end
-                    return IsPort(slope, p.Alt) ? Result.EndWarning : Result.NoMountain;
+                    return IsPort(slope, sector.EndAlt) ? Result.EndWarning : Result.NoMountain;
                 }
                 else if (slope > MaxSlope)
                 {
                     MaxSlope = slope;
                 }
 
-                Lenght += dist_diff;
-                if (p.Alt > _prevAlt) Elevation += p.Alt - _prevAlt;
-                if (p.Alt > MaxAltitude) MaxAltitude = p.Alt;
+                Lenght += distDiff;
+                if (sector.EndAlt > _sectors.Last().EndAlt) Elevation += sector.EndAlt - sector.StartAlt;
+                if (sector.EndAlt > MaxAltitude) MaxAltitude = sector.EndAlt;
                 Slope = (Elevation / Lenght) * 100;
 
 
-                _prevAlt = p.Alt;
-                _prevDistance = p.Len * 1000;
-                _points.Add(p);
+                _sectors.Add(sector);
                 return Result.Continue;
             }
             else
             {
-                _isFirstPoint = false;
-                _points.Add(p);
-                InitAltitude = p.Alt;
-                InitKm = p.Len;
-                _prevAlt = p.Alt;
-                _prevDistance = p.Len * 1000;
-                return Result.Start;
+                if (sector.Slope > 2)
+                {
+                    _isFirstPoint = false;
+                    _sectors.Add(sector);
+                    Elevation = sector.EndAlt - sector.StartAlt;
+                    Lenght = (sector.EndPoint - sector.StartPoint) * 1000;
+                    Slope = sector.Slope;
+                    MaxAltitude = sector.EndAlt;
+                    MaxSlope = sector.Slope;
+                    InitAltitude = sector.StartAlt;
+                    InitKm = sector.StartPoint;
+                    return Result.Continue;
+                }
+                else return Result.NoMountain;
             }
         }
 
         private double _forcePrevAuxDistance = 0;
-        private void ForcePoint(IReader.PointInfo p) 
+        private void ForcePoint(IReader.SectorInfo sector) 
         {
-            if (_forcePrevAuxDistance < _prevDistance) _forcePrevAuxDistance = _prevDistance;
+            if (_forcePrevAuxDistance < _sectors.Last().EndPoint * 1000) _forcePrevAuxDistance = _sectors.Last().EndPoint * 1000;
 
-            double _distDiff = (p.Len * 1000) - _forcePrevAuxDistance;
-            _forcePrevAuxDistance = p.Len * 1000;
+            double _distDiff = (sector.EndPoint * 1000) - _forcePrevAuxDistance;
+            _forcePrevAuxDistance = sector.EndPoint * 1000;
 
-            double _slope = p.Slope;
+            double _slope = sector.Slope;
             Lenght += _distDiff;
-            if (p.Alt > _prevAlt) Elevation += p.Alt - _prevAlt;
-            if (p.Alt > MaxAltitude) MaxAltitude = p.Alt;
+            if (sector.EndAlt > _sectors.Last().EndAlt) Elevation += sector.EndAlt - _sectors.Last().EndAlt;
+            if (sector.EndAlt > MaxAltitude) MaxAltitude = sector.EndAlt;
 
             if (_slope > MaxSlope) MaxSlope = _slope;
             Slope = (Elevation / Lenght) * 100;
 
-            _prevAlt = p.Alt;
-            _prevDistance = p.Len * 1000;
-            _points.Add(p);
+            _sectors.Add(sector);
         }
 
         private bool _hasToCheckSlope = true;
         private bool _hasToCheckAltitude = true;
         private double _checkPrevAuxDistance = 0;
         private double _checkPrevAlt = 0;
-        private Result Check(IReader.PointInfo p)
+        private Result Check(IReader.SectorInfo sector)
         {
             if (_checkPrevAuxDistance == 0)
             {
-                _checkPrevAuxDistance = _prevDistance;
-                _checkPrevAlt = _prevAlt;
+                _checkPrevAuxDistance = _sectors.Last().EndPoint * 1000;
+                _checkPrevAlt = _sectors.Last().EndAlt;
             }
 
-            double _distDiff = (p.Len * 1000) - _checkPrevAuxDistance;
-            _checkPrevAuxDistance = p.Len * 1000;
+            double _distDiff = (sector.EndPoint * 1000) - _checkPrevAuxDistance;
+            _checkPrevAuxDistance = sector.EndPoint * 1000;
 
-            double _pointSlope = p.Slope;              // Pendiente en el punto
-            double _checkSlope = ((p.Alt - _prevAlt) / (p.Alt * 1000 - _prevDistance)) * 100;          // Pendiente total en el check
-            _checkPrevAlt = p.Alt;
+            double _sectorSlope = sector.Slope;              // Pendiente en el punto
+            double _checkSlope = ((sector.EndAlt - _sectors.First().StartAlt) / (sector.EndPoint * 1000 - _sectors.First().StartPoint)) * 100;          // Pendiente total en el check
+            _checkPrevAlt = sector.EndAlt;
 
-            _hasToCheckAltitude = (p.Alt > MaxAltitude) ? false : true;
-            _hasToCheckSlope = (_pointSlope > 1) ? false : true;
+            _hasToCheckAltitude = (sector.EndAlt > MaxAltitude) ? false : true;
+            _hasToCheckSlope = (_sectorSlope > 1) ? false : true;
 
             if (!_hasToCheckSlope && !_hasToCheckAltitude)
             {
@@ -244,7 +248,7 @@ namespace Route
                 _checkPrevAlt = 0;
                 return Result.Continue;
             }
-            else if (ContinueCheck(p.Len * 1000 - _prevDistance, _checkSlope) == false)
+            else if (ContinueCheck((sector.EndPoint - _sectors.Last().EndPoint) * 1000, _checkSlope) == false)
             {
                 _hasToCheckAltitude = false;
                 _hasToCheckSlope = false;
@@ -258,7 +262,7 @@ namespace Route
             }
         }
 
-        private bool CheckLastPoint(IReader.PointInfo p)
+        private bool CheckLastPoint(IReader.SectorInfo p)
         {
             if (!_isFirstPoint)
             {
@@ -266,20 +270,20 @@ namespace Route
 
                 if (slope < 0)
                 {       // Si baja cierro puerto
-                    return IsPort(slope, p.Alt) ? true : false;
+                    return IsPort(slope, p.EndAlt) ? true : false;
                 }
                 else if (slope > MaxSlope)
                 {
                     MaxSlope = slope;
                 }
 
-                Lenght += p.Len * 1000 - _prevDistance;
-                if (p.Alt > _prevAlt) Elevation += p.Alt - _prevAlt;
-                if (p.Alt > MaxAltitude) MaxAltitude = p.Alt;
+                Lenght += p.EndPoint * 1000 - _sectors.Last().EndPoint;
+                if (p.EndAlt > _sectors.Last().EndAlt) Elevation += p.EndAlt - _sectors.Last().EndAlt;
+                if (p.EndAlt > MaxAltitude) MaxAltitude = p.EndAlt;
                 Slope = (Elevation / Lenght) * 100;
-                _points.Add(p);
+                _sectors.Add(p);
             }
-            return IsPort(p.Slope, p.Alt);
+            return IsPort(p.Slope, p.EndAlt);
         }
 
         private bool IsPort(double s, double a)
