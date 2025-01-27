@@ -4,28 +4,48 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Route.Reader.IReader;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Route.Reader
 {
     internal static class Smoother
     {
         private static readonly double FirstSmoothDistance = 0.025; // Kilometers
-        internal static List<SectorInfo> FirstSmooth(List<SectorInfo> input)
+
+        internal static List<SectorInfo> SmoothAndAddSectors(List<SectorInfo> input)
+        {
+            List<SectorInfo> output = FirstSmooth(input);
+            output = AddSectors(output);
+            return output;
+        }
+
+        private static List<SectorInfo> FirstSmooth(List<SectorInfo> input)
         {
             List<SectorInfo> output = new List<SectorInfo>();
             int arrayIndex = 0;
-            for (int i = 1; i < input.Count - 1; i++)
+            for (int i = 0; i < input.Count - 1; i++)
             {
-                if (input[i].EndPoint - input[arrayIndex].EndPoint >= FirstSmoothDistance)
+                if (input[i].EndPoint >= FirstSmoothDistance)
                 {
-                    double slope = (input[i].EndAlt - input[arrayIndex].EndAlt) / (input[i].EndPoint - input[arrayIndex].EndPoint) / 10;
-                    SectorInfo point = new SectorInfo(input[arrayIndex].StartPoint, input[i].EndPoint, input[arrayIndex].StartAlt, input[i].EndAlt, slope);
+                    double slope = (input[i].EndAlt - input[0].StartAlt) / (input[i].EndPoint - input[0].StartPoint) / 10;
+                    SectorInfo point = new SectorInfo(input[0].StartPoint, input[i].EndPoint, input[0].StartAlt, input[i].EndAlt, slope);
                     output.Add(point);
-                    arrayIndex = i;
+                    arrayIndex = i + 1;
+                    break;
+                }
+            }
+            
+            for (int i = arrayIndex; i < input.Count - 1; i++)
+            {
+                if (input[i].EndPoint - output.Last().EndPoint >= FirstSmoothDistance)
+                {
+                    double slope = (input[i].EndAlt - output.Last().EndAlt) / (input[i].EndPoint - output.Last().EndPoint) / 10;
+                    SectorInfo point = new SectorInfo(output.Last().EndPoint, input[i].EndPoint, output.Last().EndAlt, input[i].EndAlt, slope);
+                    output.Add(point);
                 }
             }
             double s = (input.Last().EndAlt - output.Last().EndAlt) / (input.Last().EndPoint - output.Last().EndPoint) / 10;
-            SectorInfo p = new SectorInfo(input[arrayIndex].StartPoint, input.Last().EndPoint, input[arrayIndex].StartAlt, input.Last().EndAlt, s);
+            SectorInfo p = new SectorInfo(input.Last().EndPoint, input.Last().EndPoint, input.Last().EndAlt, input.Last().EndAlt, s);
             output.Add(p);
 
             return output;
@@ -33,27 +53,27 @@ namespace Route.Reader
 
 
         private static readonly double SecondSmoothDistance = 0.01; // Kilometers
-        internal static List<SectorInfo> SecondSmooth(List<SectorInfo> input)
+        private static List<SectorInfo> AddSectors(List<SectorInfo> input)
         {
             List<SectorInfo> output = new List<SectorInfo>();
-            output.AddRange(SmoothFirstPoint(input));
-            output.AddRange(SmoothMiddlePoints(input));
-            output.AddRange(SmoothLastPoint(input));
+            output.AddRange(AddFirstSectors(input));
+            output.AddRange(AddMiddleSectors(input));
+            output.AddRange(AddLastSectors(input));
 
             return output;
         }
 
-        private static List<SectorInfo> SmoothFirstPoint(List<SectorInfo> input)
+        private static List<SectorInfo> AddFirstSectors(List<SectorInfo> input)
         {
             List<SectorInfo> output = new List<SectorInfo>();
-            double newPoints = Math.Ceiling(input[1].EndPoint / SecondSmoothDistance);   // Points to add in sector
+            double newPoints = Math.Ceiling(input.First().EndPoint / SecondSmoothDistance);   // Points to add in sector
             if (newPoints % 2 != 0) newPoints++;
-            double pointDistance = input[1].EndPoint / newPoints;
+            double pointDistance = input.First().EndPoint / newPoints;
             double change = 0.5 / (newPoints / 2);
             double currentSlope = input.First().Slope;
             double nextSlope = input[1].Slope;
-            double currentLen = 0;
-            double currentAlt = input.First().EndAlt;
+            double currentLen = input.First().StartPoint;
+            double currentAlt = input.First().StartAlt;
             // First half mantains
             for (int j = 0; j < newPoints / 2; j++)
             {
@@ -77,7 +97,7 @@ namespace Route.Reader
             return output;
         }
 
-        private static List<SectorInfo> SmoothMiddlePoints(List<SectorInfo> input)
+        private static List<SectorInfo> AddMiddleSectors(List<SectorInfo> input)
         {
             List<SectorInfo> output = new List<SectorInfo>();
             double currentLen = input[1].EndPoint;
@@ -115,7 +135,7 @@ namespace Route.Reader
             return output;
         }
 
-        private static List<SectorInfo> SmoothLastPoint(List<SectorInfo> input)
+        private static List<SectorInfo> AddLastSectors(List<SectorInfo> input)
         {
             List<SectorInfo> output = new List<SectorInfo>();
             double newPoints = Math.Ceiling((input.Last().EndPoint - input[input.Count - 2].EndPoint) / SecondSmoothDistance);   // Points to add in sector

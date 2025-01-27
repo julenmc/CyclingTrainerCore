@@ -6,17 +6,31 @@ namespace Route.Test.Reader
     public class ReaderTest
     {
         [TestMethod]
-        public void Read()
+        public void ShortRoute()
         {
             Gpx reader = new Gpx("TestFiles/test.gpx");
 
             Assert.IsTrue(reader.Read());
 
-            Assert.AreEqual(5, reader.GetLenght(), 0.01);
+            Assert.AreEqual(4, reader.GetLenght(), 0.01);
             Assert.AreEqual(200, reader.GetElevation());
 
-            Assert.AreEqual(5, reader.GetAllSectors().Last().EndPoint, 0.01);
+            Assert.AreEqual(4, reader.GetAllSectors().Last().EndPoint, 0.01);
             Assert.AreEqual(300, reader.GetAllSectors().Last().EndAlt, 0.1);
+        }
+
+        [TestMethod]
+        public void LongRoute()
+        {
+            Gpx reader = new Gpx("TestFiles/test_long.gpx");
+
+            Assert.IsTrue(reader.Read());
+
+            Assert.AreEqual(40, reader.GetLenght(), 0.1);
+            Assert.AreEqual(1000, reader.GetElevation());
+
+            Assert.AreEqual(40, reader.GetAllSectors().Last().EndPoint, 0.1);
+            Assert.AreEqual(1500, reader.GetAllSectors().Last().EndAlt, 0.1);
         }
     }
 }

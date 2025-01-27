@@ -3,24 +3,24 @@
   <trk>
     <name>Simple Ascent Route</name>
     <trkseg>
-      <trkpt lat="0.0090" lon="0.0000">
-        <ele>100</ele>
+      <trkpt lat="0.0900" lon="0.0000">
+        <ele>1000</ele>
         <time>2024-12-25T10:00:00Z</time>
       </trkpt>
-      <trkpt lat="0.0180" lon="0.0000">
-        <ele>150</ele>
+      <trkpt lat="0.1800" lon="0.0000">
+        <ele>1500</ele>
         <time>2024-12-25T10:05:00Z</time>
       </trkpt>
-      <trkpt lat="0.0270" lon="0.0000">
-        <ele>200</ele>
+      <trkpt lat="0.2700" lon="0.0000">
+        <ele>1000</ele>
         <time>2024-12-25T10:10:00Z</time>
       </trkpt>
-      <trkpt lat="0.0360" lon="0.0000">
-        <ele>250</ele>
+      <trkpt lat="0.3600" lon="0.0000">
+        <ele>1500</ele>
         <time>2024-12-25T10:15:00Z</time>
       </trkpt>
-      <trkpt lat="0.0450" lon="0.0000">
-        <ele>300</ele>
+      <trkpt lat="0.4500" lon="0.0000">
+        <ele>1500</ele>
         <time>2024-12-25T10:20:00Z</time>
       </trkpt>
     </trkseg>
