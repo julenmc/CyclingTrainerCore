@@ -50,17 +50,28 @@ namespace Route.Reader
                             foreach (GpxTrackSegment segment in segments)
                             {
                                 Lenght += segment.TrackPoints.GetLength();
+                                // First sector
+                                double startElevation = (segment.TrackPoints.First().Elevation != null) ? (double)segment.TrackPoints.First().Elevation : 0;
+                                double endElevation = (segment.TrackPoints[1].Elevation != null) ? (double)segment.TrackPoints[1].Elevation : 0;
+                                double distDiff = Math.Round(segment.TrackPoints[1].GetDistanceFrom(segment.TrackPoints.First()), 3);
+                                double startPoint = 0;
+                                double endPoint = distDiff;
+                                double altDiff = endElevation - startElevation;
+                                double slope = Math.Round((endElevation - startElevation) / (distDiff * 1000) * 100, 2);
+                                SectorInfo info = new SectorInfo(startPoint, endPoint, startElevation, endElevation, slope);
+                                if (altDiff > 0) Elevation += altDiff;
+                                sectors.Add(info);
                                 // Starting from the second point to create the sectors
-                                for (int i = 1; i < segment.TrackPoints.Count; i++)
+                                for (int i = 2; i < segment.TrackPoints.Count; i++)
                                 {
-                                    double startElevation = (segment.TrackPoints[i-1].Elevation != null) ? (double)segment.TrackPoints[i-1].Elevation : 0;
-                                    double endElevation = (segment.TrackPoints[i].Elevation != null) ? (double)segment.TrackPoints[i].Elevation : 0;
-                                    double startPoint = Math.Round(segment.TrackPoints[i-1].GetDistanceFrom(segment.TrackPoints[0]), 3);
-                                    double endPoint = Math.Round(segment.TrackPoints[i].GetDistanceFrom(segment.TrackPoints[0]), 3);
-                                    double distDiff = endPoint - startPoint;
-                                    double altDiff = endElevation - startElevation;
-                                    double slope = Math.Round((endElevation - startElevation) / (distDiff * 1000) * 100, 2);
-                                    SectorInfo info = new SectorInfo(startPoint, endPoint, startElevation, endElevation, slope);
+                                    startElevation = (segment.TrackPoints[i-1].Elevation != null) ? (double)segment.TrackPoints[i-1].Elevation : 0;
+                                    endElevation = (segment.TrackPoints[i].Elevation != null) ? (double)segment.TrackPoints[i].Elevation : 0;
+                                    distDiff = Math.Round(segment.TrackPoints[i].GetDistanceFrom(segment.TrackPoints[i-1]), 3);
+                                    startPoint = sectors.Last().EndPoint;
+                                    endPoint = distDiff + startPoint;
+                                    altDiff = endElevation - startElevation;
+                                    slope = Math.Round((endElevation - startElevation) / (distDiff * 1000) * 100, 2);
+                                    info = new SectorInfo(startPoint, endPoint, startElevation, endElevation, slope);
                                     if (altDiff > 0) Elevation += altDiff;
                                     sectors.Add(info);
                                 }

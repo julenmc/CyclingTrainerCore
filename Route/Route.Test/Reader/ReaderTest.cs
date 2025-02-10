@@ -26,11 +26,11 @@ namespace Route.Test.Reader
 
             Assert.IsTrue(reader.Read());
 
-            Assert.AreEqual(40, reader.GetLenght(), 0.1);
-            Assert.AreEqual(1000, reader.GetElevation());
+            Assert.AreEqual(80, reader.GetLenght(), 0.1);
+            Assert.AreEqual(1500, reader.GetElevation());
 
-            Assert.AreEqual(40, reader.GetAllSectors().Last().EndPoint, 0.1);
-            Assert.AreEqual(1500, reader.GetAllSectors().Last().EndAlt, 0.1);
+            Assert.AreEqual(80, reader.GetAllSectors().Last().EndPoint, 0.1);
+            Assert.AreEqual(1000, reader.GetAllSectors().Last().EndAlt, 0.1);
         }
     }
 }

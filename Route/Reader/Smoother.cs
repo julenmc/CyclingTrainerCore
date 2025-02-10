@@ -10,12 +10,14 @@ namespace Route.Reader
 {
     internal static class Smoother
     {
-        private static readonly double FirstSmoothDistance = 0.025; // Kilometers
+        private static readonly double SmoothDistance = 0.025;      // Kilometers
+        private static readonly double SectorMinDistance = 0.005;   // Kilometers
+        private static readonly double[] SectorPercentage = { 0.5, 0.7, 0.85, 1};
 
         internal static List<SectorInfo> SmoothAndAddSectors(List<SectorInfo> input)
         {
             List<SectorInfo> output = FirstSmooth(input);
-            output = AddSectors(output);
+            output = DivideSectors(output);
             return output;
         }
 
@@ -25,7 +27,7 @@ namespace Route.Reader
             int arrayIndex = 0;
             for (int i = 0; i < input.Count - 1; i++)
             {
-                if (input[i].EndPoint >= FirstSmoothDistance)
+                if (input[i].EndPoint >= SmoothDistance)
                 {
                     double slope = (input[i].EndAlt - input[0].StartAlt) / (input[i].EndPoint - input[0].StartPoint) / 10;
                     SectorInfo point = new SectorInfo(input[0].StartPoint, input[i].EndPoint, input[0].StartAlt, input[i].EndAlt, slope);
@@ -37,7 +39,7 @@ namespace Route.Reader
             
             for (int i = arrayIndex; i < input.Count - 1; i++)
             {
-                if (input[i].EndPoint - output.Last().EndPoint >= FirstSmoothDistance)
+                if (input[i].EndPoint - output.Last().EndPoint >= SmoothDistance)
                 {
                     double slope = (input[i].EndAlt - output.Last().EndAlt) / (input[i].EndPoint - output.Last().EndPoint) / 10;
                     SectorInfo point = new SectorInfo(output.Last().EndPoint, input[i].EndPoint, output.Last().EndAlt, input[i].EndAlt, slope);
@@ -51,121 +53,61 @@ namespace Route.Reader
             return output;
         }
 
-
-        private static readonly double SecondSmoothDistance = 0.01; // Kilometers
-        private static List<SectorInfo> AddSectors(List<SectorInfo> input)
+        private static List<SectorInfo> DivideSectors(List<SectorInfo> sectors)
         {
             List<SectorInfo> output = new List<SectorInfo>();
-            output.AddRange(AddFirstSectors(input));
-            output.AddRange(AddMiddleSectors(input));
-            output.AddRange(AddLastSectors(input));
-
+            output.AddRange(DivideSector(sectors[0], sectors[0], sectors[1]));
+            for (int i = 1; i < sectors.Count - 1; i++)
+            {
+                output.AddRange(DivideSector(sectors[i], sectors[i-1], sectors[i+1]));
+            }
+            output.AddRange(DivideSector(sectors[sectors.Count - 1], sectors[sectors.Count - 2], sectors[sectors.Count - 1]));
             return output;
         }
 
-        private static List<SectorInfo> AddFirstSectors(List<SectorInfo> input)
+        private static SectorInfo[] DivideSector(SectorInfo sector, SectorInfo previous, SectorInfo next)
         {
-            List<SectorInfo> output = new List<SectorInfo>();
-            double newPoints = Math.Ceiling(input.First().EndPoint / SecondSmoothDistance);   // Points to add in sector
-            if (newPoints % 2 != 0) newPoints++;
-            double pointDistance = input.First().EndPoint / newPoints;
-            double change = 0.5 / (newPoints / 2);
-            double currentSlope = input.First().Slope;
-            double nextSlope = input[1].Slope;
-            double currentLen = input.First().StartPoint;
-            double currentAlt = input.First().StartAlt;
-            // First half mantains
-            for (int j = 0; j < newPoints / 2; j++)
+            double sectorCurrentDist = sector.EndPoint - sector.StartPoint;
+            int numSubsectors = 0;
+            if ((sectorCurrentDist / SectorPercentage.Length * 2) >= SectorMinDistance)
             {
-                double prevLen = currentLen;
-                currentLen += pointDistance;
-                double prevAlt = currentAlt;
-                currentAlt = GetAltWithSlope(pointDistance, currentSlope, currentAlt);
-                output.Add(new SectorInfo(prevLen, currentLen, prevAlt, currentAlt, currentSlope));
+                numSubsectors = (int)Math.Ceiling(sectorCurrentDist / SectorMinDistance);
+                numSubsectors = (numSubsectors % 2 == 0) ? numSubsectors : numSubsectors + 1;   // Always even
             }
-            // Second half depends on next sector
-            for (int j = 1; j < newPoints / 2 + 1; j++)
+            else
             {
-                double auxNextValue = change * j;
-                double newSlope = auxNextValue * nextSlope + (1 - auxNextValue) * currentSlope;
-                double prevLen = currentLen;
-                currentLen += pointDistance;
-                double prevAlt = currentAlt;
-                currentAlt = GetAltWithSlope(pointDistance, newSlope, currentAlt);
-                output.Add(new SectorInfo(prevLen, currentLen, prevAlt, currentAlt, newSlope));
+                numSubsectors = SectorPercentage.Length;
             }
-            return output;
-        }
-
-        private static List<SectorInfo> AddMiddleSectors(List<SectorInfo> input)
-        {
-            List<SectorInfo> output = new List<SectorInfo>();
-            double currentLen = input[1].EndPoint;
-            double currentAlt = input[1].EndAlt;
-            for (int i = 1; i < input.Count - 2; i++)
+            double newSectorDist = sectorCurrentDist / numSubsectors;
+            SectorInfo[] output = new SectorInfo[numSubsectors];
+            double fixedSlope = sector.Slope;
+            double startPointPrev = sector.StartPoint;
+            double currentAltPrev = sector.StartAlt;
+            double currentAltNext = sector.EndAlt;
+            for (int i = 0; i < numSubsectors / 2; i++)
             {
-                double newPoints = Math.Ceiling((input[i].EndPoint - input[i - 1].EndPoint) / SecondSmoothDistance);   // Points to add in sector
-                if (newPoints % 2 != 0) newPoints++;
-                double pointDistance = input[i].EndPoint / newPoints;
-                double change = 0.5 / (newPoints / 2);
-                double currentSlope = input[i].Slope;
-                double prevSectorSlope = input[i - 1].Slope;
-                for (int j = 0; j < newPoints / 2; j++)
-                {
-                    double auxPrevValue = 0.5 - change * j;
-                    double newSlope = auxPrevValue * prevSectorSlope + (1 - auxPrevValue) * currentSlope;
-                    double prevLen = currentLen;
-                    currentLen += pointDistance;
-                    double prevAlt = currentAlt;
-                    currentAlt = GetAltWithSlope(pointDistance, newSlope, currentAlt);
-                    output.Add(new SectorInfo(prevLen, currentLen, prevAlt, currentAlt, newSlope));
-                }
-                double nextSectorSlope = input[i + 1].Slope;   
-                for (int j = 1; j < newPoints / 2 + 1; j++)
-                {
-                    double auxNextValue = change * j;
-                    double newSlope = auxNextValue * nextSectorSlope + (1 - auxNextValue) * currentSlope;
-                    double prevLen = currentLen;
-                    currentLen += pointDistance;
-                    double prevAlt = currentAlt;
-                    currentAlt = GetAltWithSlope(pointDistance, newSlope, currentAlt);
-                    output.Add(new SectorInfo(prevLen, currentLen, prevAlt, currentAlt, newSlope));
-                }
+                // Smoothing with previous sector
+                double startPoint = startPointPrev + newSectorDist * i;
+                double endPoint = startPoint + newSectorDist;
+                double slopePercentage = (i < SectorPercentage.Length) ? SectorPercentage[i] : 1;
+                double slope = sector.Slope * slopePercentage + previous.Slope * (1 - slopePercentage);
+                double startAlt = currentAltPrev;
+                currentAltPrev = GetAltWithSlope(newSectorDist, slope, currentAltPrev);
+                output[i] = new SectorInfo(startPoint, endPoint, startAlt, currentAltPrev, slope);
+                // Smoothing with next sector
+                endPoint = sector.EndPoint - newSectorDist * i;
+                startPoint = endPoint - newSectorDist;
+                slope = sector.Slope * slopePercentage + next.Slope * (1 - slopePercentage);
+                double endAlt = currentAltNext;
+                currentAltNext = GetAltWithSlope(newSectorDist, -slope, currentAltNext);
+                output[(numSubsectors - 1) - i] = new SectorInfo(startPoint, endPoint, currentAltNext, endAlt, slope);
+                double fixedAlt = output[(numSubsectors - 1) - i].StartAlt - output[i].EndAlt;
+                double fixedDist = output[(numSubsectors - 1) - i].StartPoint - output[i].EndPoint;
+                fixedSlope = (fixedAlt / 1000) / fixedDist * 100;
             }
             return output;
         }
 
-        private static List<SectorInfo> AddLastSectors(List<SectorInfo> input)
-        {
-            List<SectorInfo> output = new List<SectorInfo>();
-            double newPoints = Math.Ceiling((input.Last().EndPoint - input[input.Count - 2].EndPoint) / SecondSmoothDistance);   // Points to add in sector
-            if (newPoints % 2 != 0) newPoints++;
-            double pointDistance = (input.Last().EndPoint - input[input.Count - 2].EndPoint) / newPoints;
-            double change = 0.5 / (newPoints / 2);
-            double currentSlope = input.Last().Slope;
-            double prevSlope = input[input.Count - 2].Slope;
-            double currentLen = input[input.Count - 2].EndPoint;
-            double currentAlt = input[input.Count - 2].EndAlt;
-            // First half depends on previous sector
-            for (int j = 0; j < newPoints; j++)
-            {
-                double auxNextValue = 0.5 - change * j;
-                double newSlope = auxNextValue * prevSlope + (1 - auxNextValue) * currentSlope;
-                double prevLen = currentLen;
-                currentLen += pointDistance;
-                double prevAlt = currentAlt;
-                currentAlt = GetAltWithSlope(pointDistance, prevSlope, currentAlt);
-                output.Add(new SectorInfo(prevLen, currentLen, prevAlt, currentAlt, prevSlope));
-            }
-            //// Second half depends on next sector
-            //for (int j = 0; j < newPoints / 2; j++)
-            //{
-            //    currentLen += pointDistance;
-            //    currentAlt = GetAltWithSlope(pointDistance, currentSlope, currentAlt);
-            //    output.Add(new PointInfo(currentLen, currentAlt, currentSlope));
-            //}
-            return output;
-        }
 
         private static double GetAltWithSlope(double len, double slope, double prevAlt)
         {

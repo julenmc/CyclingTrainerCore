@@ -23,6 +23,22 @@
         <ele>1500</ele>
         <time>2024-12-25T10:20:00Z</time>
       </trkpt>
+      <trkpt lat="0.3600" lon="0.0000">
+        <ele>1500</ele>
+        <time>2024-12-25T10:25:00Z</time>
+      </trkpt>
+      <trkpt lat="0.2700" lon="0.0000">
+        <ele>1000</ele>
+        <time>2024-12-25T10:30:00Z</time>
+      </trkpt>
+      <trkpt lat="0.1800" lon="0.0000">
+        <ele>1500</ele>
+        <time>2024-12-25T10:35:00Z</time>
+      </trkpt>
+      <trkpt lat="0.0900" lon="0.0000">
+        <ele>1000</ele>
+        <time>2024-12-25T10:40:00Z</time>
+      </trkpt>
     </trkseg>
   </trk>
 </gpx>
