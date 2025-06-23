@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Garmin.FIT.Sdk" Version="21.171.0" />
     <PackageReference Include="GpxTools.macharius40" Version="1.1.2" />
     <PackageReference Include="NLog" Version="5.3.4" />
   </ItemGroup>
