@@ -1,0 +1,6 @@
+@TrainingDatabase.WebApi_HostAddress = http://localhost:5143
+
+GET {{TrainingDatabase.WebApi_HostAddress}}/training/
+Accept: application/json
+
+###

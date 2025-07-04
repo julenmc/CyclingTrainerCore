@@ -1,10 +1,4 @@
-/Route/bin
-/Route/obj
-/Route/Route.Test/bin
-/Route/Route.Test/obj
-/Cyclist/bin
-/Cyclist/obj
-/Cyclist/Cyclist.Test/bin
-/Cyclist/Cyclist.Test/obj
-/DeviceInterface/bin
-/DeviceInterface/obj
+**/bin
+**/obj
+**/.vs
+**/.vscode
