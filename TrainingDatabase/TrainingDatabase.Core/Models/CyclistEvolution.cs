@@ -6,5 +6,7 @@ namespace TrainingDatabase.Core.Models
         public int Height { get; set; }
         public float Weight { get; set; }
         public float Vo2Max { get; set; }
+        public string? MaxPowerCurveRaw { get; set; }
+        public Dictionary<int, int>? MaxPowerCurve { get; set; }
     }
 }
