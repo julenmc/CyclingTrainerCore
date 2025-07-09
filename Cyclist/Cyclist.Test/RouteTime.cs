@@ -13,12 +13,12 @@ namespace Cyclist.Test
             int weight = 70;
             int power = 220;
 
-            List<IReader.SectorInfo> points = new List<IReader.SectorInfo>();
-            points.Add(new IReader.SectorInfo(0, 0, 0));
-            points.Add(new IReader.SectorInfo(1, 0, 0));
-            points.Add(new IReader.SectorInfo(2, 0, 0));
-            points.Add(new IReader.SectorInfo(3, 0, 0));
-            points.Add(new IReader.SectorInfo(4, 0, 0));
+            List<SectorInfo> points = new List<SectorInfo>();
+            points.Add(new SectorInfo(0, 0, 0));
+            points.Add(new SectorInfo(1, 0, 0));
+            points.Add(new SectorInfo(2, 0, 0));
+            points.Add(new SectorInfo(3, 0, 0));
+            points.Add(new SectorInfo(4, 0, 0));
             ReaderMock reader = new ReaderMock(points);
             RouteRepository route = new RouteRepository(reader);
 

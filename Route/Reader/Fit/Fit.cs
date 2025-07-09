@@ -1,5 +1,6 @@
 ﻿using NLog;
 using Dynastream.Fit;
+using Route.Repository;
 using static Route.Reader.IReader;
 
 namespace Route.Reader.Fit
@@ -9,6 +10,7 @@ namespace Route.Reader.Fit
         private readonly Logger Log = LogManager.GetCurrentClassLogger();
         public double Lenght { get; private set; }
         public double Elevation { get; private set; }
+        public List<PointInfo> Points { get; private set; } = default!;
 
         private string _path;
 
@@ -67,6 +69,7 @@ namespace Route.Reader.Fit
                 ActivityParser activityParser = new ActivityParser(fitDecoder.FitMessages);
                 var sessions = activityParser.ParseSessions();
                 List<SectorInfo> sectors = new List<SectorInfo>();
+                Points = new List<PointInfo>();
 
                 foreach (var session in sessions)
                 {
@@ -82,6 +85,8 @@ namespace Route.Reader.Fit
                     SectorInfo info = new SectorInfo(startPoint, endPoint, startElevation, endElevation, slope);
                     if (altDiff > 0) Elevation += altDiff;
                     sectors.Add(info);
+                    SavePoint(session.Records[0]);
+                    SavePoint(session.Records[1]);
                     // Starting from the second point to create the sectors
                     for (int i = 2; i < session.Records.Count; i++)
                     {
@@ -95,6 +100,7 @@ namespace Route.Reader.Fit
                         info = new SectorInfo(startPoint, endPoint, startElevation, endElevation, slope);
                         if (altDiff > 0) Elevation += altDiff;
                         sectors.Add(info);
+                        SavePoint(session.Records[i]);
                     }
                 }
                 _sectors = Smoother.SmoothAndAddSectors(sectors);
@@ -105,6 +111,40 @@ namespace Route.Reader.Fit
             {
                 return false;
             }
+        }
+
+        private void SavePoint(RecordMesg record)
+        {
+            PointInfo pointInfo = new PointInfo()
+            {
+                Timestamp = record.GetTimestamp(),
+                Temperature = record.GetTemperature(),
+                AccCalories = record.GetCalories(),
+                Position = new PointPosition()
+                {
+                    Longitude = record.GetPositionLong(),
+                    Latitude = record.GetPositionLat(),
+                    Altitude = record.GetAltitude(),
+                    Distance = record.GetDistance()
+                },
+                Stats = new PointStats()
+                {
+                    Power = record.GetPower(),
+                    Speed = record.GetSpeed(),
+                    HeartRate = record.GetHeartRate(),
+                    Cadence = record.GetCadence(),
+                    RespirationRate = record.GetRespirationRate(),
+                },
+                Advanced = new PointAdvStats()
+                {
+                    FractionalCadence = record.GetFractionalCadence(),
+                    LeftPco = record.GetLeftPco(),
+                    RightPco = record.GetRightPco(),
+                    //LeftPowerPhase = record.GetLeftPowerPhase(),
+                    //LeftPowerPhasePeak = record.GetLeftPowerPhasePeak(),
+                }
+            };
+            Points.Add(pointInfo);
         }
 
         public double GetLenght()

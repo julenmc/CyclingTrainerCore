@@ -1,5 +1,6 @@
 ﻿using NLog;
 using Route.Reader;
+using Route.Repository;
 
 namespace Route
 {
@@ -27,7 +28,7 @@ namespace Route
             Log.Info("Analysis finished");
         }
 
-        public List<IReader.SectorInfo> GetAllPoints()
+        public List<SectorInfo> GetAllPoints()
         {
             return _reader.GetAllSectors();
         }

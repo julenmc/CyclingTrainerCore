@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Route.Reader.IReader;
+﻿using static Route.Reader.IReader;
+using Route.Repository;
 
 using GpxTools;
 using GpxTools.Gpx;

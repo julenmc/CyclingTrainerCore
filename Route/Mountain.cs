@@ -1,21 +1,21 @@
 ﻿using Route.Reader;
 using NLog;
-using static System.Formats.Asn1.AsnWriter;
+using Route.Repository;
 
 namespace Route
 {
     public class Mountain
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static List<Mountain> GetMountains(List<IReader.SectorInfo> sectors)
+        public static List<Mountain> GetMountains(List<SectorInfo> sectors)
         {
-            IReader.SectorInfo forceSector = new IReader.SectorInfo(0,0,0,0,0);
+            SectorInfo forceSector = new SectorInfo(0,0,0,0,0);
             List<Mountain> list = new List<Mountain>();
             int id = 1;
             Mountain mount = new Mountain(id);
             Result r = Result.NoMountain;
 
-            foreach (IReader.SectorInfo sector in sectors)
+            foreach (SectorInfo sector in sectors)
             {
                 if (sector.EndPoint <= forceSector.EndPoint && sector.EndPoint != 0)
                 {
@@ -115,7 +115,7 @@ namespace Route
             MaxAltitude = 0;
             Slope = 0;
             MaxSlope = 0;
-            _sectors = new List<IReader.SectorInfo>();
+            _sectors = new List<SectorInfo>();
         }
 
         private static readonly int PassReqRows = 6;
@@ -151,11 +151,11 @@ namespace Route
             }
         };
 
-        private List<IReader.SectorInfo> _sectors;
+        private List<SectorInfo> _sectors;
 
         private bool _isFirstPoint = true;
 
-        private Result AddSector(IReader.SectorInfo sector)
+        private Result AddSector(SectorInfo sector)
         {
             if (!_isFirstPoint)
             {
@@ -200,7 +200,7 @@ namespace Route
         }
 
         private double _forcePrevAuxDistance = 0;
-        private void ForcePoint(IReader.SectorInfo sector) 
+        private void ForcePoint(SectorInfo sector) 
         {
             if (_forcePrevAuxDistance < _sectors.Last().EndPoint * 1000) _forcePrevAuxDistance = _sectors.Last().EndPoint * 1000;
 
@@ -222,7 +222,7 @@ namespace Route
         private bool _hasToCheckAltitude = true;
         private double _checkPrevAuxDistance = 0;
         private double _checkPrevAlt = 0;
-        private Result Check(IReader.SectorInfo sector)
+        private Result Check(SectorInfo sector)
         {
             if (_checkPrevAuxDistance == 0)
             {
@@ -262,7 +262,7 @@ namespace Route
             }
         }
 
-        private bool CheckLastPoint(IReader.SectorInfo p)
+        private bool CheckLastPoint(SectorInfo p)
         {
             if (!_isFirstPoint)
             {
