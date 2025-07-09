@@ -11,6 +11,7 @@ namespace TrainingDatabase.Core.Models
         public double LatitudeEnd { get; set; }
         public double AltitudeInit { get; set; }
         public double AltitudeEnd { get; set; }
+        public int Distance { get; set; }
         public double AverageSlope { get; set; }
         public double MaxSlope { get; set; }
         public int HeightDiff { get; set; }
