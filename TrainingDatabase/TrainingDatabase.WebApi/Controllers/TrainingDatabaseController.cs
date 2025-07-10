@@ -9,8 +9,8 @@ namespace TrainingDatabase.WebApi.Controllers
     public class TrainingDatabaseController : ControllerBase
     {
         // GET all action
-        [HttpGet]
-        public ActionResult<List<Cyclist>> GetAll() =>
-            DatabaseReaderService.GetAll();
+        //[HttpGet]
+        //public ActionResult<List<Cyclist>> GetAll() =>
+        //    DatabaseReaderService.GetAll();
     }
 }
