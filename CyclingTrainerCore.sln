@@ -13,13 +13,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrainingDatabase.WebApi", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrainingDatabase.Console", "TrainingDatabase\TrainingDatabase.Console\TrainingDatabase.Console.csproj", "{93693A6C-24E5-F5A5-F724-105DC3FAE191}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SessionAnalyzer", "SessionAnalyzer", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SessionReader", "SessionReader", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionAnalyzer.Core", "SessionAnalyzer\SessionAnalyzer.Core\SessionAnalyzer.Core.csproj", "{B42C3599-7B31-36B1-1B29-C2CBF7B712B4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionReader.Core", "SessionReader\SessionReader.Core\SessionReader.Core.csproj", "{B42C3599-7B31-36B1-1B29-C2CBF7B712B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionAnalyzer.Console", "SessionAnalyzer\SessionAnalyzer.Console\SessionAnalyzer.Console.csproj", "{49164028-1160-6457-D56F-0164011E9677}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionReader.Console", "SessionReader\SessionReader.Console\SessionReader.Console.csproj", "{49164028-1160-6457-D56F-0164011E9677}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionAnalyzer.Test", "SessionAnalyzer\SessionAnalyzer.Test\SessionAnalyzer.Test.csproj", "{F0504D2D-B4F0-698F-4C5C-1F5C689B0E19}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionReader.Test", "SessionReader\SessionReader.Test\SessionReader.Test.csproj", "{F0504D2D-B4F0-698F-4C5C-1F5C689B0E19}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
