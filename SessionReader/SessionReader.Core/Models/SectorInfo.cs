@@ -10,7 +10,7 @@
 
         public SectorInfo() { }
 
-        public SectorInfo(double sp, double ep, double sa, double ea, double sl)
+        internal SectorInfo(double sp, double ep, double sa, double ea, double sl)
         {
             StartPoint = sp;
             EndPoint = ep;

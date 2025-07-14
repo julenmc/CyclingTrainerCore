@@ -1,6 +1,6 @@
 ﻿namespace SessionReader.Core.Models
 {
-    public class PointInfo
+    public class FitnessData
     {
         public Dynastream.Fit.DateTime Timestamp { get; set; } = default!;
         public int? Temperature { get; set; } = default!;

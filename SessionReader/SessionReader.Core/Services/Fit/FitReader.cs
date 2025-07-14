@@ -1,27 +1,27 @@
 ﻿using NLog;
 using Dynastream.Fit;
 using SessionReader.Core.Models;
-using static SessionReader.Core.Models.IReader;
+using static SessionReader.Core.Services.ISessionReader;
 
 namespace SessionReader.Core.Services.Fit
 {
-    public class FitReader : IReader
+    public class FitReader : ISessionReader
     {
         private readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public double Lenght { get; private set; }
-        public double Elevation { get; private set; }
-        public List<PointInfo> Points { get; private set; } = default!;
 
         private string _path;
+        private double _lenght = 0;
+        private double _elevation = 0;
+        private List<FitnessData> _fitnessPoints = new List<FitnessData>();
 
-        private List<SectorInfo> _sectors;
+        private List<SectorInfo> _sectorsRaw;
+        private List<SectorInfo> _sectorsSmoothed;
 
         public FitReader(string path)
         {
             _path = path;
-            _sectors = new List<SectorInfo>();
-            Lenght = 0;
-            Elevation = 0;
+            _sectorsSmoothed = new List<SectorInfo>();
+            _sectorsRaw = new List<SectorInfo>();
         }
 
         public string GetName()
@@ -68,12 +68,12 @@ namespace SessionReader.Core.Services.Fit
                 // Create the Activity Parser and group the messages into individual sessions.
                 ActivityParser activityParser = new ActivityParser(fitDecoder.FitMessages);
                 var sessions = activityParser.ParseSessions();
-                List<SectorInfo> sectors = new List<SectorInfo>();
-                Points = new List<PointInfo>();
+                _sectorsRaw = new List<SectorInfo>();
+                _fitnessPoints = new List<FitnessData>();
 
                 foreach (var session in sessions)
                 {
-                    Lenght += (double)session.Records.Last().GetDistance()/1000;
+                    _lenght += (double)session.Records.Last().GetDistance()/1000;
                     // First sector
                     double startElevation = (session.Records[0].GetAltitude() != null) ? (double)session.Records[0].GetAltitude() : 0;
                     double endElevation = (session.Records[1].GetAltitude() != null) ? (double)session.Records[1].GetAltitude() : 0;
@@ -90,8 +90,8 @@ namespace SessionReader.Core.Services.Fit
                         EndAlt = endElevation, 
                         Slope = slope 
                     };
-                    if (altDiff > 0) Elevation += altDiff;
-                    sectors.Add(info);
+                    if (altDiff > 0) _elevation += altDiff;
+                    _sectorsRaw.Add(info);
                     SavePoint(session.Records[0]);
                     SavePoint(session.Records[1]);
                     // Starting from the second point to create the sectors
@@ -100,7 +100,7 @@ namespace SessionReader.Core.Services.Fit
                         startElevation = (session.Records[i - 1].GetAltitude() != null) ? (double)session.Records[i - 1].GetAltitude() : 0;
                         endElevation = (session.Records[i].GetAltitude() != null) ? (double)session.Records[i].GetAltitude() : 0;
                         distDiff = Math.Round((double)session.Records[i].GetDistance()/1000 - (double)session.Records[i-1].GetDistance()/1000, 3);
-                        startPoint = sectors.Last().EndPoint;
+                        startPoint = _sectorsRaw.Last().EndPoint;
                         endPoint = distDiff + startPoint;
                         altDiff = endElevation - startElevation;
                         slope = Math.Round((endElevation - startElevation) / (distDiff * 1000) * 100, 2);
@@ -112,16 +112,16 @@ namespace SessionReader.Core.Services.Fit
                             EndAlt = endElevation,
                             Slope = slope
                         };
-                        if (altDiff > 0) Elevation += altDiff;
-                        sectors.Add(info);
+                        if (altDiff > 0) _elevation += altDiff;
+                        _sectorsRaw.Add(info);
                         SavePoint(session.Records[i]);
                     }
                 }
-                _sectors = RouteSmootherService.SmoothAndAddSectors(sectors);
+                _sectorsSmoothed = RouteSmootherService.SmoothAndAddSectors(_sectorsRaw);
 
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
@@ -129,7 +129,7 @@ namespace SessionReader.Core.Services.Fit
 
         private void SavePoint(RecordMesg record)
         {
-            PointInfo pointInfo = new PointInfo()
+            FitnessData pointInfo = new FitnessData()
             {
                 Timestamp = record.GetTimestamp(),
                 Temperature = record.GetTemperature(),
@@ -158,22 +158,12 @@ namespace SessionReader.Core.Services.Fit
                     //LeftPowerPhasePeak = record.GetLeftPowerPhasePeak(),
                 }
             };
-            Points.Add(pointInfo);
+            _fitnessPoints.Add(pointInfo);
         }
 
-        public double GetLenght()
-        {
-            return Lenght;
-        }
-
-        public double GetElevation()
-        {
-            return Elevation;
-        }
-
-        public List<SectorInfo> GetAllSectors()
-        {
-            return _sectors;
-        }
+        public double GetLenght() => _lenght;
+        public double GetElevation() => _elevation;
+        public List<SectorInfo> GetSmoothedSectors() => _sectorsSmoothed;
+        public List<FitnessData> GetFitnessData() => _fitnessPoints;
     }
 }

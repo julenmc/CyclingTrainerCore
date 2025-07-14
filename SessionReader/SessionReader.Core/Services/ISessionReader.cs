@@ -1,6 +1,8 @@
-﻿namespace SessionReader.Core.Models
+﻿using SessionReader.Core.Models;
+
+namespace SessionReader.Core.Services
 {
-    public interface IReader
+    public interface ISessionReader
     {
         public enum ReaderResult
         {
@@ -13,6 +15,7 @@
         public double GetLenght();
         public double GetElevation();
         public string GetName();
-        public List<SectorInfo> GetAllSectors();
+        public List<SectorInfo> GetSmoothedSectors();
+        public List<FitnessData> GetFitnessData();
     }
 }

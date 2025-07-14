@@ -1,11 +1,12 @@
 ﻿using NLog;
 using SessionReader.Core.Models;
 using SessionReader.Core.Repository;
-using static SessionReader.Core.Models.IReader;
+using SessionReader.Core.Services;
+using static SessionReader.Core.Services.ISessionReader;
 
 namespace SessionReader.Test.Mocks
 {
-    public class ReaderMock : IReader
+    public class ReaderMock : ISessionReader
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -14,8 +15,8 @@ namespace SessionReader.Test.Mocks
 
         private List<SectorInfo> _sectors;
 
-        public ReaderMock(List<SectorInfo> p) 
-        { 
+        public ReaderMock(List<SectorInfo> p)
+        {
             _sectors = new List<SectorInfo>();
             AssignSlopes(p);
         }
@@ -56,6 +57,11 @@ namespace SessionReader.Test.Mocks
 
         public double GetLenght() => _lenght;
         public double GetElevation() => _elevation;
-        public List<SectorInfo> GetAllSectors() => _sectors;
+        public List<SectorInfo> GetSmoothedSectors() => _sectors;
+        public List<SectorInfo> GetRawSectors() => _sectors;
+        public List<FitnessData> GetFitnessData()
+        {
+            return new List<FitnessData>();
+        }
     }
 }

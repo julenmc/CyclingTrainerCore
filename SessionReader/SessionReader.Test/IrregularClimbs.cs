@@ -2,12 +2,12 @@
 using SessionReader.Core.Repository;
 using SessionReader.Test.Mocks;
 
-namespace SessionReader.Test.Irregular
+namespace SessionReader.Test
 {
     [TestClass]
     public class IrregularClimbs
     {
-        Route route = default!;
+        SessionData session = default!;
 
         [TestInitialize]
         public void SetUp()
@@ -33,19 +33,19 @@ namespace SessionReader.Test.Irregular
                 new SectorInfo(4, 5, 300, 400, 0)
             };
             ReaderMock reader = new ReaderMock(points);
-            route = RouteRepository.AnalyzeRoute(reader);
+            session = SessionRepository.AnalyzeRoute(reader);
 
-            Assert.AreEqual(5, route.Lenght);
-            Assert.AreEqual(400, route.Elevation);
-            Assert.AreEqual(1, route.Climbs.Count);
-            Assert.AreEqual(1, route.Climbs[0].Id);
-            Assert.AreEqual(5000, route.Climbs[0].Lenght);
-            Assert.AreEqual(0, route.Climbs[0].InitKm);
-            Assert.AreEqual(400, route.Climbs[0].Elevation);
-            Assert.AreEqual(0, route.Climbs[0].InitAltitude);
-            Assert.AreEqual(400, route.Climbs[0].MaxAltitude);
-            Assert.AreEqual(8, route.Climbs[0].Slope);
-            Assert.AreEqual(10, route.Climbs[0].MaxSlope);
+            Assert.AreEqual(5, session.Route.Lenght);
+            Assert.AreEqual(400, session.Route.Elevation);
+            Assert.AreEqual(1, session.Route.Climbs.Count);
+            Assert.AreEqual(1, session.Route.Climbs[0].Id);
+            Assert.AreEqual(5000, session.Route.Climbs[0].Lenght);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitKm);
+            Assert.AreEqual(400, session.Route.Climbs[0].Elevation);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitAltitude);
+            Assert.AreEqual(400, session.Route.Climbs[0].MaxAltitude);
+            Assert.AreEqual(8, session.Route.Climbs[0].Slope);
+            Assert.AreEqual(10, session.Route.Climbs[0].MaxSlope);
         }
 
         [TestMethod]
@@ -65,17 +65,17 @@ namespace SessionReader.Test.Irregular
                 new SectorInfo(8, 9, 200, 150, 0)
             };
             ReaderMock reader = new ReaderMock(points);
-            Route route = RouteRepository.AnalyzeRoute(reader);
+            SessionData session = SessionRepository.AnalyzeRoute(reader);
 
-            Assert.AreEqual(9, route.Lenght);
-            Assert.AreEqual(370, route.Elevation);
-            Assert.AreEqual(1, route.Climbs.Count);
-            Assert.AreEqual(1, route.Climbs[0].Id);
-            Assert.AreEqual(5000, route.Climbs[0].Lenght);
-            Assert.AreEqual(0, route.Climbs[0].InitKm);
-            Assert.AreEqual(370, route.Climbs[0].Elevation);
-            Assert.AreEqual(0, route.Climbs[0].InitAltitude);
-            Assert.AreEqual(350, route.Climbs[0].MaxAltitude);
+            Assert.AreEqual(9, session.Route.Lenght);
+            Assert.AreEqual(370, session.Route.Elevation);
+            Assert.AreEqual(1, session.Route.Climbs.Count);
+            Assert.AreEqual(1, session.Route.Climbs[0].Id);
+            Assert.AreEqual(5000, session.Route.Climbs[0].Lenght);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitKm);
+            Assert.AreEqual(370, session.Route.Climbs[0].Elevation);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitAltitude);
+            Assert.AreEqual(350, session.Route.Climbs[0].MaxAltitude);
         }
     }
 }

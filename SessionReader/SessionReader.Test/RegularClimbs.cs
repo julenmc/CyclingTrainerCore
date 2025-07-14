@@ -2,12 +2,12 @@
 using SessionReader.Core.Repository;
 using SessionReader.Test.Mocks;
 
-namespace SessionReader.Test.Regular
+namespace SessionReader.Test
 {
     [TestClass]
     public class RegularClimbs
     {
-        Route route = default!;
+        SessionData session = default!;
 
         [TestInitialize]
         public void SetUp()
@@ -31,10 +31,10 @@ namespace SessionReader.Test.Regular
             points.Add(new SectorInfo(3, 4, 0, 0, 0));
             ReaderMock reader = new ReaderMock(points);
 
-            route = RouteRepository.AnalyzeRoute(reader);
-            Assert.AreEqual(4, route.Lenght);
-            Assert.AreEqual(0, route.Elevation);
-            Assert.AreEqual(0, route.Climbs.Count);
+            session = SessionRepository.AnalyzeRoute(reader);
+            Assert.AreEqual(4, session.Route.Lenght);
+            Assert.AreEqual(0, session.Route.Elevation);
+            Assert.AreEqual(0, session.Route.Climbs.Count);
         }
 
         [TestMethod]
@@ -47,19 +47,19 @@ namespace SessionReader.Test.Regular
             points.Add(new SectorInfo(3, 4, 100, 100, 0));
             points.Add(new SectorInfo(4, 4.01, 100, 100, 0));
             ReaderMock reader = new ReaderMock(points);
-            route = RouteRepository.AnalyzeRoute(reader);
+            session = SessionRepository.AnalyzeRoute(reader);
 
-            Assert.AreEqual(4.01, route.Lenght);
-            Assert.AreEqual(200, route.Elevation);
-            Assert.AreEqual(1, route.Climbs.Count);
-            Assert.AreEqual(1, route.Climbs[0].Id);
-            Assert.AreEqual(2000, route.Climbs[0].Lenght);
-            Assert.AreEqual(0, route.Climbs[0].InitKm);
-            Assert.AreEqual(200, route.Climbs[0].Elevation);
-            Assert.AreEqual(0, route.Climbs[0].InitAltitude);
-            Assert.AreEqual(200, route.Climbs[0].MaxAltitude);
-            Assert.AreEqual(10, route.Climbs[0].Slope);
-            Assert.AreEqual(10, route.Climbs[0].MaxSlope);
+            Assert.AreEqual(4.01, session.Route.Lenght);
+            Assert.AreEqual(200, session.Route.Elevation);
+            Assert.AreEqual(1, session.Route.Climbs.Count);
+            Assert.AreEqual(1, session.Route.Climbs[0].Id);
+            Assert.AreEqual(2000, session.Route.Climbs[0].Lenght);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitKm);
+            Assert.AreEqual(200, session.Route.Climbs[0].Elevation);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitAltitude);
+            Assert.AreEqual(200, session.Route.Climbs[0].MaxAltitude);
+            Assert.AreEqual(10, session.Route.Climbs[0].Slope);
+            Assert.AreEqual(10, session.Route.Climbs[0].MaxSlope);
         }
 
         [TestMethod]
@@ -72,19 +72,19 @@ namespace SessionReader.Test.Regular
             points.Add(new SectorInfo(3, 4, 200, 200, 0));
             points.Add(new SectorInfo(4, 4.01, 200, 200, 0));
             ReaderMock reader = new ReaderMock(points);
-            route = RouteRepository.AnalyzeRoute(reader);
+            session = SessionRepository.AnalyzeRoute(reader);
 
-            Assert.AreEqual(4.01, route.Lenght);
-            Assert.AreEqual(200, route.Elevation);
-            Assert.AreEqual(1, route.Climbs.Count);
-            Assert.AreEqual(1, route.Climbs[0].Id);
-            Assert.AreEqual(2000, route.Climbs[0].Lenght);
-            Assert.AreEqual(0, route.Climbs[0].InitKm);
-            Assert.AreEqual(200, route.Climbs[0].Elevation);
-            Assert.AreEqual(0, route.Climbs[0].InitAltitude);
-            Assert.AreEqual(200, route.Climbs[0].MaxAltitude);
-            Assert.AreEqual(10, route.Climbs[0].Slope);
-            Assert.AreEqual(10, route.Climbs[0].MaxSlope);
+            Assert.AreEqual(4.01, session.Route.Lenght);
+            Assert.AreEqual(200, session.Route.Elevation);
+            Assert.AreEqual(1, session.Route.Climbs.Count);
+            Assert.AreEqual(1, session.Route.Climbs[0].Id);
+            Assert.AreEqual(2000, session.Route.Climbs[0].Lenght);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitKm);
+            Assert.AreEqual(200, session.Route.Climbs[0].Elevation);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitAltitude);
+            Assert.AreEqual(200, session.Route.Climbs[0].MaxAltitude);
+            Assert.AreEqual(10, session.Route.Climbs[0].Slope);
+            Assert.AreEqual(10, session.Route.Climbs[0].MaxSlope);
         }
 
         [TestMethod]
@@ -97,19 +97,19 @@ namespace SessionReader.Test.Regular
             points.Add(new SectorInfo(3, 4, 300, 400, 0));
             points.Add(new SectorInfo(4, 4.01, 400, 401, 0));
             ReaderMock reader = new ReaderMock(points);
-            route = RouteRepository.AnalyzeRoute(reader);
+            session = SessionRepository.AnalyzeRoute(reader);
 
-            Assert.AreEqual(4.01, route.Lenght);
-            Assert.AreEqual(401, route.Elevation);
-            Assert.AreEqual(1, route.Climbs.Count);
-            Assert.AreEqual(1, route.Climbs[0].Id);
-            Assert.AreEqual(4010, route.Climbs[0].Lenght);
-            Assert.AreEqual(0, route.Climbs[0].InitKm);
-            Assert.AreEqual(401, route.Climbs[0].Elevation);
-            Assert.AreEqual(0, route.Climbs[0].InitAltitude);
-            Assert.AreEqual(401, route.Climbs[0].MaxAltitude);
-            Assert.AreEqual(10, route.Climbs[0].Slope);
-            Assert.AreEqual(10, route.Climbs[0].MaxSlope, 0.01);
+            Assert.AreEqual(4.01, session.Route.Lenght);
+            Assert.AreEqual(401, session.Route.Elevation);
+            Assert.AreEqual(1, session.Route.Climbs.Count);
+            Assert.AreEqual(1, session.Route.Climbs[0].Id);
+            Assert.AreEqual(4010, session.Route.Climbs[0].Lenght);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitKm);
+            Assert.AreEqual(401, session.Route.Climbs[0].Elevation);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitAltitude);
+            Assert.AreEqual(401, session.Route.Climbs[0].MaxAltitude);
+            Assert.AreEqual(10, session.Route.Climbs[0].Slope);
+            Assert.AreEqual(10, session.Route.Climbs[0].MaxSlope, 0.01);
         }
 
         [TestMethod]
@@ -122,29 +122,29 @@ namespace SessionReader.Test.Regular
             points.Add(new SectorInfo(3, 5, 100, 100, 0));
             points.Add(new SectorInfo(5, 6, 100, 200, 0));
             ReaderMock reader = new ReaderMock(points);
-            route = RouteRepository.AnalyzeRoute(reader);
+            session = SessionRepository.AnalyzeRoute(reader);
 
-            Assert.AreEqual(6, route.Lenght);
-            Assert.AreEqual(300, route.Elevation);
-            Assert.AreEqual(2, route.Climbs.Count);
+            Assert.AreEqual(6, session.Route.Lenght);
+            Assert.AreEqual(300, session.Route.Elevation);
+            Assert.AreEqual(2, session.Route.Climbs.Count);
 
-            Assert.AreEqual(1, route.Climbs[0].Id);
-            Assert.AreEqual(2000, route.Climbs[0].Lenght);
-            Assert.AreEqual(0, route.Climbs[0].InitKm);
-            Assert.AreEqual(200, route.Climbs[0].Elevation);
-            Assert.AreEqual(0, route.Climbs[0].InitAltitude);
-            Assert.AreEqual(200, route.Climbs[0].MaxAltitude);
-            Assert.AreEqual(10, route.Climbs[0].Slope);
-            Assert.AreEqual(10, route.Climbs[0].MaxSlope);
+            Assert.AreEqual(1, session.Route.Climbs[0].Id);
+            Assert.AreEqual(2000, session.Route.Climbs[0].Lenght);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitKm);
+            Assert.AreEqual(200, session.Route.Climbs[0].Elevation);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitAltitude);
+            Assert.AreEqual(200, session.Route.Climbs[0].MaxAltitude);
+            Assert.AreEqual(10, session.Route.Climbs[0].Slope);
+            Assert.AreEqual(10, session.Route.Climbs[0].MaxSlope);
 
-            Assert.AreEqual(2, route.Climbs[1].Id);
-            Assert.AreEqual(1000, route.Climbs[1].Lenght);
-            Assert.AreEqual(5, route.Climbs[1].InitKm);
-            Assert.AreEqual(100, route.Climbs[1].Elevation);
-            Assert.AreEqual(100, route.Climbs[1].InitAltitude);
-            Assert.AreEqual(200, route.Climbs[1].MaxAltitude);
-            Assert.AreEqual(10, route.Climbs[1].Slope);
-            Assert.AreEqual(10, route.Climbs[1].MaxSlope);
+            Assert.AreEqual(2, session.Route.Climbs[1].Id);
+            Assert.AreEqual(1000, session.Route.Climbs[1].Lenght);
+            Assert.AreEqual(5, session.Route.Climbs[1].InitKm);
+            Assert.AreEqual(100, session.Route.Climbs[1].Elevation);
+            Assert.AreEqual(100, session.Route.Climbs[1].InitAltitude);
+            Assert.AreEqual(200, session.Route.Climbs[1].MaxAltitude);
+            Assert.AreEqual(10, session.Route.Climbs[1].Slope);
+            Assert.AreEqual(10, session.Route.Climbs[1].MaxSlope);
         }
 
         [TestMethod]
@@ -156,18 +156,18 @@ namespace SessionReader.Test.Regular
             points.Add(new SectorInfo(2, 2.1, 200, 200, 0));
             ReaderMock reader = new ReaderMock(points);
 
-            route = RouteRepository.AnalyzeRoute(reader);
-            Assert.AreEqual(2.1, route.Lenght);
-            Assert.AreEqual(200, route.Elevation);
-            Assert.AreEqual(1, route.Climbs.Count);
-            Assert.AreEqual(1, route.Climbs[0].Id);
-            Assert.AreEqual(2000, route.Climbs[0].Lenght);
-            Assert.AreEqual(0, route.Climbs[0].InitKm);
-            Assert.AreEqual(200, route.Climbs[0].Elevation);
-            Assert.AreEqual(0, route.Climbs[0].InitAltitude);
-            Assert.AreEqual(200, route.Climbs[0].MaxAltitude);
-            Assert.AreEqual(10, route.Climbs[0].Slope);
-            Assert.AreEqual(10, route.Climbs[0].MaxSlope, 0.01);
+            session = SessionRepository.AnalyzeRoute(reader);
+            Assert.AreEqual(2.1, session.Route.Lenght);
+            Assert.AreEqual(200, session.Route.Elevation);
+            Assert.AreEqual(1, session.Route.Climbs.Count);
+            Assert.AreEqual(1, session.Route.Climbs[0].Id);
+            Assert.AreEqual(2000, session.Route.Climbs[0].Lenght);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitKm);
+            Assert.AreEqual(200, session.Route.Climbs[0].Elevation);
+            Assert.AreEqual(0, session.Route.Climbs[0].InitAltitude);
+            Assert.AreEqual(200, session.Route.Climbs[0].MaxAltitude);
+            Assert.AreEqual(10, session.Route.Climbs[0].Slope);
+            Assert.AreEqual(10, session.Route.Climbs[0].MaxSlope, 0.01);
         }
     }
 }
