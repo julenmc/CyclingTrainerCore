@@ -1,4 +1,4 @@
-namespace TrainingDatabase.Core.Models
+namespace CommonModels
 {
     public class Climb
     {
@@ -11,9 +11,11 @@ namespace TrainingDatabase.Core.Models
         public double LatitudeEnd { get; set; }
         public double AltitudeInit { get; set; }
         public double AltitudeEnd { get; set; }
-        public int Distance { get; set; }
+        public double InitRouteDistance { get; set; } // Distance from the start of the route to the climb start point
+        public double EndRouteDistance { get; set; } // Distance from the start of the route to the climb end point
+        public double Distance { get; set; }
         public double AverageSlope { get; set; }
         public double MaxSlope { get; set; }
-        public int HeightDiff { get; set; }
+        public double HeightDiff { get; set; }
     }
 }

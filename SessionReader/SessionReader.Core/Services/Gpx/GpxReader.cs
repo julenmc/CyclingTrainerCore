@@ -53,7 +53,7 @@ namespace SessionReader.Core.Services.Gpx
                                 double startPoint = 0;
                                 double endPoint = distDiff;
                                 double altDiff = endElevation - startElevation;
-                                double slope = Math.Round((endElevation - startElevation) / (distDiff * 1000) * 100, 2);
+                                double slope = Math.Round((endElevation - startElevation) / distDiff * 100, 2);
                                 SectorInfo info = new SectorInfo(startPoint, endPoint, startElevation, endElevation, slope);
                                 if (altDiff > 0) _elevation += altDiff;
                                 _sectorsRaw.Add(info);
@@ -66,7 +66,7 @@ namespace SessionReader.Core.Services.Gpx
                                     startPoint = _sectorsRaw.Last().EndPoint;
                                     endPoint = distDiff + startPoint;
                                     altDiff = endElevation - startElevation;
-                                    slope = Math.Round((endElevation - startElevation) / (distDiff * 1000) * 100, 2);
+                                    slope = Math.Round((endElevation - startElevation) / distDiff * 100, 2);
                                     info = new SectorInfo(startPoint, endPoint, startElevation, endElevation, slope);
                                     if (altDiff > 0) _elevation += altDiff;
                                     _sectorsRaw.Add(info);

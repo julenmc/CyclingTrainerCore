@@ -1,12 +1,13 @@
-namespace TrainingDatabase.Core.Models
+namespace CommonModels
 {
     public class Session
     {
         public int Id { get; set; }
+        public string? Name { get; set; }
         public string? Path { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public double DistanceM { get; set; }
+        public double Distance { get; set; }
         public double HeightDiff { get; set; }
         public int Calories { get; set; }
         public int AverageHr { get; set; }

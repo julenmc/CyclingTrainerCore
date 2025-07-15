@@ -1,4 +1,4 @@
-namespace TrainingDatabase.Core.Models
+namespace CommonModels
 {
     public class Interval
     {

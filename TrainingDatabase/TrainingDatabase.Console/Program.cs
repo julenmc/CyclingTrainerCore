@@ -1,4 +1,5 @@
-﻿using TrainingDatabase.Core.Models;
+﻿using CommonModels;
+using TrainingDatabase.Core.Models;
 using TrainingDatabase.Core.Repository;
 
 namespace TrainingDatabase.App
@@ -66,7 +67,7 @@ namespace TrainingDatabase.App
                 Path = "example_path.fit",
                 StartDate = DateTime.Now,
                 EndDate = DateTime.Now.AddHours(1),
-                DistanceM = 20000,
+                Distance = 20000,
                 HeightDiff = 500,
                 Calories = 800,
                 AverageHr = 150,

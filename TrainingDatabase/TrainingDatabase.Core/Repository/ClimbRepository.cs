@@ -1,4 +1,5 @@
-﻿using TrainingDatabase.Core.Models;
+﻿using CommonModels;
+using TrainingDatabase.Core.Models;
 using TrainingDatabase.Core.Services;
 
 namespace TrainingDatabase.Core.Repository

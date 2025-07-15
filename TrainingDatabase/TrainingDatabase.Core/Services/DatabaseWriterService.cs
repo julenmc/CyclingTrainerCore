@@ -1,4 +1,5 @@
-﻿using TrainingDatabase.Core.Models;
+﻿using CommonModels;
+using TrainingDatabase.Core.Models;
 using Microsoft.Data.Sqlite;
 
 namespace TrainingDatabase.Core.Services
@@ -104,7 +105,7 @@ namespace TrainingDatabase.Core.Services
                     command.Parameters.AddWithValue("@path", session.Path);
                     command.Parameters.AddWithValue("@start_time", new DateTimeOffset(session.StartDate).ToUnixTimeSeconds());
                     command.Parameters.AddWithValue("@end_time", new DateTimeOffset(session.EndDate).ToUnixTimeSeconds());
-                    command.Parameters.AddWithValue("@distance_m", session.DistanceM);
+                    command.Parameters.AddWithValue("@distance_m", session.Distance);
                     command.Parameters.AddWithValue("@height_diff_m", session.HeightDiff);
                     command.Parameters.AddWithValue("@calories", session.Calories);
                     command.Parameters.AddWithValue("@average_hr", session.AverageHr);

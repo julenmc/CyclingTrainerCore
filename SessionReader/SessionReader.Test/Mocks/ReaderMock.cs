@@ -25,7 +25,7 @@ namespace SessionReader.Test.Mocks
         {
             foreach (SectorInfo sector in sectors)
             {
-                double slope = (sector.EndAlt - sector.StartAlt) / (sector.EndPoint - sector.StartPoint) / 10;
+                double slope = (sector.EndAlt - sector.StartAlt) / (sector.EndPoint - sector.StartPoint) * 100;
                 SectorInfo point = new SectorInfo
                 {
                     StartPoint = sector.StartPoint,

@@ -73,15 +73,15 @@ namespace SessionReader.Core.Services.Fit
 
                 foreach (var session in sessions)
                 {
-                    _lenght += (double)session.Records.Last().GetDistance()/1000;
+                    _lenght += (double)session.Records.Last().GetDistance();
                     // First sector
                     double startElevation = (session.Records[0].GetAltitude() != null) ? (double)session.Records[0].GetAltitude() : 0;
                     double endElevation = (session.Records[1].GetAltitude() != null) ? (double)session.Records[1].GetAltitude() : 0;
-                    double distDiff = Math.Round((double)session.Records[1].GetDistance()/1000 - (double)session.Records[0].GetDistance()/1000, 3);
+                    double distDiff = Math.Round((double)session.Records[1].GetDistance() - (double)session.Records[0].GetDistance(), 3);
                     double startPoint = 0;
                     double endPoint = distDiff;
                     double altDiff = endElevation - startElevation;
-                    double slope = Math.Round((endElevation - startElevation) / (distDiff * 1000) * 100, 2);
+                    double slope = Math.Round((endElevation - startElevation) / distDiff * 100, 2);
                     SectorInfo info = new SectorInfo
                     {
                         StartPoint = startPoint, 
@@ -99,11 +99,11 @@ namespace SessionReader.Core.Services.Fit
                     {
                         startElevation = (session.Records[i - 1].GetAltitude() != null) ? (double)session.Records[i - 1].GetAltitude() : 0;
                         endElevation = (session.Records[i].GetAltitude() != null) ? (double)session.Records[i].GetAltitude() : 0;
-                        distDiff = Math.Round((double)session.Records[i].GetDistance()/1000 - (double)session.Records[i-1].GetDistance()/1000, 3);
+                        distDiff = Math.Round((double)session.Records[i].GetDistance() - (double)session.Records[i-1].GetDistance(), 3);
                         startPoint = _sectorsRaw.Last().EndPoint;
                         endPoint = distDiff + startPoint;
                         altDiff = endElevation - startElevation;
-                        slope = Math.Round((endElevation - startElevation) / (distDiff * 1000) * 100, 2);
+                        slope = Math.Round((endElevation - startElevation) / distDiff * 100, 2);
                         info = new SectorInfo
                         {
                             StartPoint = startPoint,

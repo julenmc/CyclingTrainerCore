@@ -4,8 +4,8 @@ namespace SessionReader.Core.Services
 {
     internal static class RouteSmootherService
     {
-        private const double SmoothDistance = 0.025;      // Kilometers
-        private const double SectorMinDistance = 0.005;   // Kilometers
+        private const double SmoothDistance = 25;      
+        private const double SectorMinDistance = 5;   
         private static readonly double[] SectorPercentage = { 0.5, 0.7, 0.85, 1};
 
         internal static List<SectorInfo> SmoothAndAddSectors(List<SectorInfo> input)
@@ -23,7 +23,7 @@ namespace SessionReader.Core.Services
             {
                 if (input[i].EndPoint >= SmoothDistance)
                 {
-                    double slope = (input[i].EndAlt - input[0].StartAlt) / (input[i].EndPoint - input[0].StartPoint) / 10;
+                    double slope = (input[i].EndAlt - input[0].StartAlt) / (input[i].EndPoint - input[0].StartPoint) * 100;
                     SectorInfo point = new SectorInfo
                     {
                         StartPoint = input[0].StartPoint,
@@ -42,7 +42,7 @@ namespace SessionReader.Core.Services
             {
                 if (input[i].EndPoint - output.Last().EndPoint >= SmoothDistance)
                 {
-                    double slope = (input[i].EndAlt - output.Last().EndAlt) / (input[i].EndPoint - output.Last().EndPoint) / 10;
+                    double slope = (input[i].EndAlt - output.Last().EndAlt) / (input[i].EndPoint - output.Last().EndPoint) * 100;
                     SectorInfo point = new SectorInfo
                     {
                         StartPoint = output.Last().EndPoint,
@@ -54,7 +54,7 @@ namespace SessionReader.Core.Services
                     output.Add(point);
                 }
             }
-            double s = (input.Last().EndAlt - output.Last().EndAlt) / (input.Last().EndPoint - output.Last().EndPoint) / 10;
+            double s = (input.Last().EndAlt - output.Last().EndAlt) / (input.Last().EndPoint - output.Last().EndPoint) * 100;
             SectorInfo p = new SectorInfo
             {
                 StartPoint = input.Last().EndPoint,
@@ -132,7 +132,7 @@ namespace SessionReader.Core.Services
                 };
                 double fixedAlt = output[(numSubsectors - 1) - i].StartAlt - output[i].EndAlt;
                 double fixedDist = output[(numSubsectors - 1) - i].StartPoint - output[i].EndPoint;
-                fixedSlope = (fixedAlt / 1000) / fixedDist * 100;
+                fixedSlope = fixedAlt / fixedDist * 100;
             }
             return output;
         }
@@ -140,7 +140,7 @@ namespace SessionReader.Core.Services
 
         private static double GetAltWithSlope(double len, double slope, double prevAlt)
         {
-            return prevAlt + (len * 1000) * slope / 100;
+            return prevAlt + len * slope / 100;
         }
     }
 }

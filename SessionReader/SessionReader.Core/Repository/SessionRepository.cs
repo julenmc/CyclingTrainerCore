@@ -1,4 +1,5 @@
 ﻿using NLog;
+using CommonModels;
 using SessionReader.Core.Models;
 using SessionReader.Core.Services;
 using SessionReader.Core.Services.Fit;
@@ -9,14 +10,16 @@ namespace SessionReader.Core.Repository
     public static class SessionRepository
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private static SessionData _sessionData = new SessionData();
+        private static Session _session = new Session();
+        private static RouteSections _routeData = new RouteSections();
+        private static List<FitnessData> _fitnessData = new List<FitnessData>();
 
-        internal static SessionData AnalyzeRoute(ISessionReader reader)
+        internal static Session AnalyzeRoute(ISessionReader reader)
         {
             return Analyze(reader);
         }
 
-        public static SessionData AnalyzeRoute(string path)
+        public static Session AnalyzeRoute(string path)
         {
             switch (Path.GetExtension(path))
             {
@@ -31,24 +34,48 @@ namespace SessionReader.Core.Repository
             }
         }
 
-        private static SessionData Analyze(ISessionReader reader)
+        private static Session Analyze(ISessionReader reader)
         {
             reader.Read();
-            _sessionData = new SessionData();
-            _sessionData.Name = reader.GetName();
-            _sessionData.Route.Lenght = Math.Round(reader.GetLenght(), 2);
-            _sessionData.Route.Elevation = Math.Round(reader.GetElevation(), 0);
-            _sessionData.Route.Sectors = reader.GetSmoothedSectors();
-            _sessionData.Route.Climbs = ClimbFinderService.GetClimbs(_sessionData.Route.Sectors);
-            Log.Info($"New route analyzed: {_sessionData.Name}. Length = {_sessionData.Route.Lenght} km, Elevation = {_sessionData.Route.Elevation} m");
+            _session = new Session();
+            _routeData = new RouteSections();
+            _fitnessData = new List<FitnessData>();
+            _session.Name = reader.GetName();
+            _session.Distance = Math.Round(reader.GetLenght(), 2);
+            _session.HeightDiff = Math.Round(reader.GetElevation(), 0);
+            _routeData.Sectors = reader.GetSmoothedSectors();
+            _routeData.Climbs = ClimbFinderService.GetClimbs(_routeData.Sectors);
+            _fitnessData = reader.GetFitnessData();
+            _session.StartDate = _fitnessData.First().Timestamp.GetDateTime();
+            _session.EndDate = _fitnessData.Last().Timestamp.GetDateTime();
+            Log.Info($"Fitness data found: {_fitnessData.Count} records");
+            SetClimbCoords();
+            Log.Info($"New route analyzed: {_session.Name}. Length = {Math.Round(_session.Distance / 1000, 2)} km, Elevation = {_session.HeightDiff} m");
 
-            _sessionData.FitnessData = reader.GetFitnessData();
-            Log.Info($"Fitness data found: {_sessionData.FitnessData.Count} records");
-
-            return _sessionData;
+            return _session;
         }
 
-        public static SessionData GetRoute() => _sessionData;
-        public static List<FitnessData> GetFitnessData() => _sessionData.FitnessData;
+        private static void SetClimbCoords()
+        {
+            if (_fitnessData.Count == 0) return;
+            int index = 0;
+            foreach (Climb climb in _routeData.Climbs)
+            {
+                while (index < _fitnessData.Count && climb.InitRouteDistance < _fitnessData[index].Position.Distance)
+                {
+                    index++;
+                }
+                if (index >= _fitnessData.Count) continue;
+
+                climb.LongitudeInit = _fitnessData[index].Position.Longitude ?? 0;
+                climb.LongitudeEnd = _fitnessData[index+1].Position.Longitude ?? 0;
+                climb.LatitudeInit = _fitnessData[index].Position.Latitude ?? 0;
+                climb.LatitudeEnd = _fitnessData[index + 1].Position.Latitude ?? 0;
+            }
+        }
+
+        public static Session GetSession() => _session;
+        public static RouteSections GetRouteData() => _routeData;
+        public static List<FitnessData> GetFitnessData() => _fitnessData;
     }
 }

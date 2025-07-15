@@ -1,7 +1,6 @@
+using CommonModels;
 using TrainingDatabase.Core.Models;
 using Microsoft.Data.Sqlite;
-using System.IO;
-using System.Security.Claims;
 
 namespace TrainingDatabase.Core.Services
 {
@@ -91,7 +90,7 @@ namespace TrainingDatabase.Core.Services
                             Path = reader.IsDBNull(2) ? null : reader.GetString(2),
                             StartDate = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(3)).DateTime,
                             EndDate = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(4)).DateTime,
-                            DistanceM = reader.GetDouble(5),
+                            Distance = reader.GetDouble(5),
                             HeightDiff = reader.GetDouble(6),
                             Calories = reader.GetInt32(7),
                             AverageHr = reader.GetInt32(8),

@@ -12,8 +12,8 @@
 
     public class PointPosition
     {
-        public int? Longitude { get; set; } = default!;
-        public int? Latitude { get; set; } = default!;
+        public double? Longitude { get; set; } = default!;
+        public double? Latitude { get; set; } = default!;
         public float? Altitude { get; set; } = default!;
         public float? Distance { get; set; } = default!;
     }
