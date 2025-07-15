@@ -77,7 +77,7 @@ namespace SessionReader.Core.Services
             {
                 if (sector.EndPoint <= forceSector.EndPoint && sector.EndPoint != 0)
                 {
-                    Log.Trace($"Forcing mount point at {Math.Round(sector.EndPoint, 3)}km ({sector.EndAlt}m) until {Math.Round(forceSector.EndPoint, 3)}km");
+                    Log.Trace($"Forcing mount point at {Math.Round(sector.EndPoint)}m ({sector.EndAlt}m) until {Math.Round(forceSector.EndPoint)}m");
                     ForcePoint(climb, sector);
                 }
                 else
@@ -85,7 +85,7 @@ namespace SessionReader.Core.Services
                     r = AddSector(climb, sector);
                     if (r == Result.EndWarning)
                     {
-                        Log.Debug($"Climb could end at km {Math.Round(sector.StartPoint, 3)} ({sector.StartAlt}m)");
+                        Log.Debug($"Climb could end at {Math.Round(sector.StartPoint)}m ({sector.StartAlt}m)");
                         int index = sectors.FindIndex(i => i.EndPoint == sector.EndPoint);
                         r = Check(climb, sectors[index]);
                         while (index < sectors.Count)
@@ -108,7 +108,7 @@ namespace SessionReader.Core.Services
 
                         if (r == Result.ClimbEnd)
                         {
-                            Log.Debug($"Climb ended at km {Math.Round(sector.StartPoint, 3)} ({sector.StartAlt}m)");
+                            Log.Debug($"Climb ended at {Math.Round(sector.StartPoint)}m ({sector.StartAlt}m)");
                             EndClimb(climb);
                             list.Add(climb);
                             id++;
@@ -117,18 +117,18 @@ namespace SessionReader.Core.Services
                         }
                         else if (r == Result.Continue)
                         {
-                            Log.Debug($"Climb continues at km {Math.Round(sectors[index].EndPoint, 3)}");
+                            Log.Debug($"Climb continues at {Math.Round(sectors[index].EndPoint)}m");
                             ForcePoint(climb, sector);
                             forceSector = sectors[index];
                         }
                         else
                         {
-                            Log.Error($"Should not be here at km {Math.Round(sector.EndPoint, 3)} ({sector.EndAlt}m). r = {r}");
+                            Log.Error($"Should not be here at {Math.Round(sector.EndPoint)}m ({sector.EndAlt}m). r = {r}");
                         }
                     }
                     else if (r == Result.NoClimb)
                     {
-                        Log.Trace($"No Climb at km {Math.Round(sector.EndPoint, 3)}");
+                        Log.Trace($"No Climb at {Math.Round(sector.EndPoint)}m");
                         _isFirstPoint = true;
                         climb = new Climb();
                         climb.Id = id;
@@ -183,7 +183,7 @@ namespace SessionReader.Core.Services
                     climb.MaxSlope = sector.Slope;
                     climb.AltitudeInit = sector.StartAlt;
                     climb.InitRouteDistance = sector.StartPoint;
-                    Log.Debug($"New climb could start at {climb.InitRouteDistance}");
+                    Log.Debug($"New climb could start at {Math.Round(climb.InitRouteDistance)}");
                     return Result.Continue;
                 }
                 else return Result.NoClimb;
@@ -286,13 +286,14 @@ namespace SessionReader.Core.Services
             climb.Distance = Math.Round(climb.Distance);
             climb.HeightDiff = Math.Round(climb.HeightDiff);
             climb.AverageSlope = Math.Round(climb.AverageSlope, 1);
-            climb.InitRouteDistance = Math.Round(climb.InitRouteDistance, 1);
+            climb.InitRouteDistance = Math.Round(climb.InitRouteDistance);
+            climb.EndRouteDistance = Math.Round(climb.InitRouteDistance + climb.Distance);
             climb.AltitudeInit = Math.Round(climb.AltitudeInit);
             climb.AltitudeEnd = Math.Round(climb.AltitudeEnd);
             climb.MaxSlope = Math.Round(climb.MaxSlope, 1);
             _isFirstPoint = true;
 
-            Log.Info($"New climb found: Id = {climb.Id}, Lenght = {climb.Distance} m, Elevation = {climb.HeightDiff} m, InitKm = {climb.InitRouteDistance} km");
+            Log.Info($"New climb found: Id = {climb.Id}, Lenght = {climb.Distance} m, Elevation = {climb.HeightDiff} m, InitPoint = {climb.InitRouteDistance}m, EndPoint = {climb.EndRouteDistance}m");
         }
     }
 }

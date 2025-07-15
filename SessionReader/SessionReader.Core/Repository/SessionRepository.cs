@@ -45,19 +45,23 @@ namespace SessionReader.Core.Repository
             _session.HeightDiff = Math.Round(reader.GetElevation(), 0);
             _routeData.Sectors = reader.GetSmoothedSectors();
             _routeData.Climbs = ClimbFinderService.GetClimbs(_routeData.Sectors);
+            Log.Info($"New route analyzed: {_session.Name}. Length = {Math.Round(_session.Distance / 1000, 2)} km, Elevation = {_session.HeightDiff} m");
+
             _fitnessData = reader.GetFitnessData();
-            _session.StartDate = _fitnessData.First().Timestamp.GetDateTime();
-            _session.EndDate = _fitnessData.Last().Timestamp.GetDateTime();
+            if (_fitnessData.Count == 0)
+            {
+                Log.Warn("No fitness data found in the session. Please check the file.");
+                return _session;
+            }
+
             Log.Info($"Fitness data found: {_fitnessData.Count} records");
             SetClimbCoords();
-            Log.Info($"New route analyzed: {_session.Name}. Length = {Math.Round(_session.Distance / 1000, 2)} km, Elevation = {_session.HeightDiff} m");
 
             return _session;
         }
 
         private static void SetClimbCoords()
         {
-            if (_fitnessData.Count == 0) return;
             int index = 0;
             foreach (Climb climb in _routeData.Climbs)
             {

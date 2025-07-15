@@ -45,11 +45,11 @@ namespace SessionReader.Core.Services.Gpx
 
                             foreach (GpxTrackSegment segment in segments)
                             {
-                                _lenght += segment.TrackPoints.GetLength();
+                                _lenght += segment.TrackPoints.GetLength() * 1000;
                                 // First sector
                                 double startElevation = segment.TrackPoints.First().Elevation != null ? (double)segment.TrackPoints.First().Elevation : 0;
                                 double endElevation = segment.TrackPoints[1].Elevation != null ? (double)segment.TrackPoints[1].Elevation : 0;
-                                double distDiff = Math.Round(segment.TrackPoints[1].GetDistanceFrom(segment.TrackPoints.First()), 3);
+                                double distDiff = Math.Round(segment.TrackPoints[1].GetDistanceFrom(segment.TrackPoints.First()) * 1000, 2);
                                 double startPoint = 0;
                                 double endPoint = distDiff;
                                 double altDiff = endElevation - startElevation;
@@ -62,7 +62,7 @@ namespace SessionReader.Core.Services.Gpx
                                 {
                                     startElevation = segment.TrackPoints[i - 1].Elevation != null ? (double)segment.TrackPoints[i - 1].Elevation : 0;
                                     endElevation = segment.TrackPoints[i].Elevation != null ? (double)segment.TrackPoints[i].Elevation : 0;
-                                    distDiff = Math.Round(segment.TrackPoints[i].GetDistanceFrom(segment.TrackPoints[i - 1]), 3);
+                                    distDiff = Math.Round(segment.TrackPoints[i].GetDistanceFrom(segment.TrackPoints[i - 1]) * 1000, 2);
                                     startPoint = _sectorsRaw.Last().EndPoint;
                                     endPoint = distDiff + startPoint;
                                     altDiff = endElevation - startElevation;
@@ -72,7 +72,7 @@ namespace SessionReader.Core.Services.Gpx
                                     _sectorsRaw.Add(info);
                                 }
                             }
-                            _sectorsSmoothed = _sectorsRaw;
+                            _sectorsSmoothed = RouteSmootherService.SmoothAndAddSectors(_sectorsRaw); 
                         }
                     }
                 }

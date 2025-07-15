@@ -12,7 +12,7 @@ namespace SessionReader.Console
         {
             Logger.Info("Start Session Reader Test");
             
-            Session session = SessionRepository.AnalyzeRoute(@"Resources/19652409585_ACTIVITY.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
+            Session session = SessionRepository.AnalyzeRoute(@"Resources/aranguren.gpx"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
             RouteSections routeData = SessionRepository.GetRouteData();
             List<FitnessData> fitnessData = SessionRepository.GetFitnessData();
             Logger.Info($"Route {session.Name} info: Lenght = {session.Distance}m. Elevation = {session.HeightDiff}m"); 
@@ -21,8 +21,11 @@ namespace SessionReader.Console
                 Logger.Info($"Climb {climb.Id} info: Lenght = {climb.Distance}m (starts at {climb.InitRouteDistance}m; ends at {climb.EndRouteDistance}m). Elevation = {climb.HeightDiff} m (starts at {climb.AltitudeInit} m, ends at {climb.AltitudeEnd} m). Slope = {climb.AverageSlope}% (max {climb.MaxSlope}%)");
             }
 
-            int index = 100;
-            Logger.Info($"Example. Power at distance {fitnessData[index].Position.Distance} m = {fitnessData[index].Stats.Power} W");
+            if (fitnessData.Count != 0)
+            {
+                int index = 100;
+                Logger.Info($"Example. Power at distance {fitnessData[index].Position.Distance} m = {fitnessData[index].Stats.Power} W");
+            }
         }
     }
 }
