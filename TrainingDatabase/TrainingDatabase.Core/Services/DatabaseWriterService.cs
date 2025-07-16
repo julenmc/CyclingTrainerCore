@@ -107,10 +107,10 @@ namespace TrainingDatabase.Core.Services
                     command.Parameters.AddWithValue("@end_time", new DateTimeOffset(session.EndDate).ToUnixTimeSeconds());
                     command.Parameters.AddWithValue("@distance_m", session.Distance);
                     command.Parameters.AddWithValue("@height_diff_m", session.HeightDiff);
-                    command.Parameters.AddWithValue("@calories", session.Calories);
-                    command.Parameters.AddWithValue("@average_hr", session.AverageHr);
-                    command.Parameters.AddWithValue("@average_power", session.AveragePower);
-                    command.Parameters.AddWithValue("@power_curve", session.PowerCurveRaw ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@calories", session.AnalyzedData.Calories);
+                    command.Parameters.AddWithValue("@average_hr", session.AnalyzedData.AverageHr);
+                    command.Parameters.AddWithValue("@average_power", session.AnalyzedData.AveragePower);
+                    command.Parameters.AddWithValue("@power_curve", session.AnalyzedData.PowerCurveRaw ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@indoor", session.IsIndoor);
                     int rowsAffected = await command.ExecuteNonQueryAsync();
                     if (rowsAffected == 0)

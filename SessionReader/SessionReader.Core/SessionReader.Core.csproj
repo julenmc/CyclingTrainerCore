@@ -16,4 +16,8 @@
     <ProjectReference Include="..\..\CommonModels\CommonModels.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Repository\" />
+  </ItemGroup>
+
 </Project>

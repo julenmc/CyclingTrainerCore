@@ -33,7 +33,7 @@ namespace TrainingDatabase.Core.Repository
         private async Task LoadSingleSessionAsync(Session session)
         {
             IEnumerable<Interval> interval = await DatabaseReaderService.GetSessionIntervalsAsync(DatabasePath, session.Id);
-            session.Intervals = interval.ToList();
+            session.AnalyzedData.Intervals = interval.ToList();
         }
 
         public Dictionary<int, Session> GetAll() => _sessions;
@@ -42,24 +42,24 @@ namespace TrainingDatabase.Core.Repository
         public async Task<int> AddSessionAsync(Session session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
-            if (session.PowerCurve != null) session.PowerCurveRaw = JsonService.GenerateJsonFromCurve(session.PowerCurve);
+            if (session.AnalyzedData.PowerCurve != null) session.AnalyzedData.PowerCurveRaw = JsonService.GenerateJsonFromCurve(session.AnalyzedData.PowerCurve);
             int sessionId = await DatabaseWriterService.AddSessionAsync(DatabasePath, _cyclistId, session);
             session.Id = sessionId;
-            if (session.Intervals != null)
+            if (session.AnalyzedData.Intervals != null)
             {
-                Task[] tasks = new Task[session.Intervals.Count()];
+                Task[] tasks = new Task[session.AnalyzedData.Intervals.Count()];
                 int index = 0;
-                foreach (Interval interval in session.Intervals)
+                foreach (Interval interval in session.AnalyzedData.Intervals)
                 {
                     tasks[index++] = AddSingleInterval(sessionId, interval);
                 }
                 await Task.WhenAll(tasks);
             }
-            if (session.Climbs != null)
+            if (session.AnalyzedData.Climbs != null)
             {
-                Task[] tasks = new Task[session.Climbs.Count()];
+                Task[] tasks = new Task[session.AnalyzedData.Climbs.Count()];
                 int index = 0;
-                foreach (var kvp in session.Climbs)
+                foreach (var kvp in session.AnalyzedData.Climbs)
                 {
                     tasks[index++] = AddSingleClimbInterval(sessionId, kvp.Key.Id, kvp.Value);
                 }

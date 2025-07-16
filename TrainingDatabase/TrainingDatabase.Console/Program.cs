@@ -69,75 +69,78 @@ namespace TrainingDatabase.App
                 EndDate = DateTime.Now.AddHours(1),
                 Distance = 20000,
                 HeightDiff = 500,
-                Calories = 800,
-                AverageHr = 150,
-                AveragePower = 250,
-                PowerCurve = new Dictionary<int, int>
+                AnalyzedData = new AnalyzedData
                 {
-                    { 15, 600 },
-                    { 30, 500 },
-                    { 60, 380 },
-                    { 120, 350 },
-                    { 300, 300 },
-                    { 480, 280 },
-                    { 600, 265 },
-                    { 1200, 250 }
-                },
-                IsIndoor = false,
-                Intervals = new List<Interval>
-                {
-                    new Interval
+                    Calories = 800,
+                    AverageHr = 150,
+                    AveragePower = 250,
+                    PowerCurve = new Dictionary<int, int>
                     {
-                        StartTime = now.Add(new TimeSpan(-1,0,0)),
-                        EndTime =  now.Add(new TimeSpan(0,-50,0)),
-                        TotalDistance = 5000,
-                        AverageHeartRate = 145,
-                        AveragePower = 260,
-                        AverageCadence = 100
+                        { 15, 600 },
+                        { 30, 500 },
+                        { 60, 380 },
+                        { 120, 350 },
+                        { 300, 300 },
+                        { 480, 280 },
+                        { 600, 265 },
+                        { 1200, 250 }
                     },
-                    new Interval
+                    Intervals = new List<Interval>
                     {
-                        StartTime = now.Add(new TimeSpan(0,-50,0)),
-                        EndTime =  now.Add(new TimeSpan(0,-40,0)),
-                        TotalDistance = 2000,
-                        AverageHeartRate = 135,
-                        AveragePower = 200,
-                        AverageCadence = 90
-                    },
-                    new Interval
-                    {
-                        StartTime = now.Add(new TimeSpan(0,-40,0)),
-                        EndTime =  now.Add(new TimeSpan(0,-25,0)),
-                        TotalDistance = 5000,
-                        AverageHeartRate = 155,
-                        AveragePower = 270,
-                        AverageCadence = 100
-                    },
-                    new Interval
-                    {
-                        StartTime = now.Add(new TimeSpan(0,-25,0)),
-                        EndTime =  now.Add(new TimeSpan(0,-5,0)),
-                        TotalDistance = 3000,
-                        AverageHeartRate = 125,
-                        AveragePower = 190,
-                        AverageCadence = 80
-                    },
-                },
-                Climbs = new Dictionary<Climb, Interval>
-                {
-                    { 
-                        await ClimbRepository.GetClimbAsync(3), 
-                        new Interval 
+                        new Interval
                         {
                             StartTime = now.Add(new TimeSpan(-1,0,0)),
-                            EndTime =  now.Add(new TimeSpan(0,-40,0)),
-                            TotalDistance = 6000,
+                            EndTime =  now.Add(new TimeSpan(0,-50,0)),
+                            TotalDistance = 5000,
                             AverageHeartRate = 145,
                             AveragePower = 260,
                             AverageCadence = 100
+                        },
+                        new Interval
+                        {
+                            StartTime = now.Add(new TimeSpan(0,-50,0)),
+                            EndTime =  now.Add(new TimeSpan(0,-40,0)),
+                            TotalDistance = 2000,
+                            AverageHeartRate = 135,
+                            AveragePower = 200,
+                            AverageCadence = 90
+                        },
+                        new Interval
+                        {
+                            StartTime = now.Add(new TimeSpan(0,-40,0)),
+                            EndTime =  now.Add(new TimeSpan(0,-25,0)),
+                            TotalDistance = 5000,
+                            AverageHeartRate = 155,
+                            AveragePower = 270,
+                            AverageCadence = 100
+                        },
+                        new Interval
+                        {
+                            StartTime = now.Add(new TimeSpan(0,-25,0)),
+                            EndTime =  now.Add(new TimeSpan(0,-5,0)),
+                            TotalDistance = 3000,
+                            AverageHeartRate = 125,
+                            AveragePower = 190,
+                            AverageCadence = 80
+                        },
+                    },
+                    Climbs = new Dictionary<Climb, Interval>
+                    {
+                        {
+                            await ClimbRepository.GetClimbAsync(3),
+                            new Interval
+                            {
+                                StartTime = now.Add(new TimeSpan(-1,0,0)),
+                                EndTime =  now.Add(new TimeSpan(0,-40,0)),
+                                TotalDistance = 6000,
+                                AverageHeartRate = 145,
+                                AveragePower = 260,
+                                AverageCadence = 100
+                            }
                         }
                     }
-                }
+                },
+                IsIndoor = false,
             };
             SessionsRepository sessionsRepository = await CyclistsRepository.GetCyclistSessionsAsync(cyclist.Id);
             await sessionsRepository.AddSessionAsync(session);

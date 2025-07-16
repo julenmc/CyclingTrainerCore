@@ -8,16 +8,17 @@
 
   <ItemGroup>
     <Compile Remove="Models\**" />
-    <Compile Remove="Repository\**" />
     <EmbeddedResource Remove="Models\**" />
-    <EmbeddedResource Remove="Repository\**" />
     <None Remove="Models\**" />
-    <None Remove="Repository\**" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\SessionReader\SessionReader.Core\SessionReader.Core.csproj" />
     <ProjectReference Include="..\..\TrainingDatabase\TrainingDatabase.Core\TrainingDatabase.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Repository\" />
   </ItemGroup>
 
 </Project>

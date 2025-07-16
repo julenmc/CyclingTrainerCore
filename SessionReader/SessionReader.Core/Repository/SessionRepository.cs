@@ -81,5 +81,6 @@ namespace SessionReader.Core.Repository
         public static Session GetSession() => _session;
         public static RouteSections GetRouteData() => _routeData;
         public static List<FitnessData> GetFitnessData() => _fitnessData;
+        public static void UpdateAnalyzedData(AnalyzedData data) => _session.AnalyzedData = data;
     }
 }

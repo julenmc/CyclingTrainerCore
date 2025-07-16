@@ -92,10 +92,13 @@ namespace TrainingDatabase.Core.Services
                             EndDate = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(4)).DateTime,
                             Distance = reader.GetDouble(5),
                             HeightDiff = reader.GetDouble(6),
-                            Calories = reader.GetInt32(7),
-                            AverageHr = reader.GetInt32(8),
-                            AveragePower = reader.GetInt32(9),
-                            PowerCurveRaw = reader.IsDBNull(10) ? null : reader.GetString(10),
+                            AnalyzedData = new AnalyzedData
+                            {
+                                Calories = reader.GetInt32(7),
+                                AverageHr = reader.GetInt32(8),
+                                AveragePower = reader.GetInt32(9),
+                                PowerCurveRaw = reader.IsDBNull(10) ? null : reader.GetString(10),
+                            },
                             IsIndoor = reader.GetBoolean(11),
                         };
                         sessions.Add(climb);
