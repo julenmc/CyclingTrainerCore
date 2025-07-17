@@ -1,4 +1,5 @@
 ﻿using CommonModels;
+using Dapper;
 using NLog;
 using SessionReader.Core.Models;
 using SessionReader.Core.Repository;
@@ -14,13 +15,19 @@ namespace SessionAnalyzer.Core.Services
         public static Session AnalyzeData()
         {
             List<FitnessData> fitnessData = SessionRepository.GetFitnessData();
+            SessionRepository.UpdateAnalyzedData(AnalyzeFitnessData(fitnessData));
+            return SessionRepository.GetSession();
+        }
+
+        internal static AnalyzedData AnalyzeFitnessData(List<FitnessData> fitnessData)
+        {
             double totalMiliSeconds = 0;
             double totalPower = 0;
             double totalHr = 0;
             double totalCadence = 0;
             for (int i = 0; i < fitnessData.Count - 1; i++)
             {
-                double timeDiff = fitnessData[i+1].Timestamp.GetDateTime().Subtract(fitnessData[i].Timestamp.GetDateTime()).TotalMilliseconds;
+                double timeDiff = fitnessData[i + 1].Timestamp.GetDateTime().Subtract(fitnessData[i].Timestamp.GetDateTime()).TotalMilliseconds;
                 if (timeDiff > MaxTimeDiff)
                 {
                     Log.Warn($"Time difference between records {i} and {i + 1} is too high: {timeDiff} ms. This may cause incorrect average values.");
@@ -31,14 +38,18 @@ namespace SessionAnalyzer.Core.Services
                 totalHr += (double)(fitnessData[i].Stats.HeartRate ?? 0) * timeDiff;
                 totalCadence += (double)(fitnessData[i].Stats.Cadence ?? 0) * timeDiff;
             }
+            // Add last point info
+            totalMiliSeconds += 1000;
+            totalPower += (double)(fitnessData.Last().Stats.Power ?? 0) * 1000;
+            totalHr += (double)(fitnessData.Last().Stats.HeartRate ?? 0) * 1000;
+            totalCadence += (double)(fitnessData.Last().Stats.Cadence ?? 0) * 1000;
 
+            // Get averages
             AnalyzedData data = new AnalyzedData();
             data.AveragePower = (int)Math.Round(totalPower / totalMiliSeconds);
             data.AverageHr = (int)Math.Round(totalHr / totalMiliSeconds);
             data.AverageCadence = (int)Math.Round(totalCadence / totalMiliSeconds);
-            SessionRepository.UpdateAnalyzedData(data);
-
-            return SessionRepository.GetSession();
+            return data;
         }
     }
 }

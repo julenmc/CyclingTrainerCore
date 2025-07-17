@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionAnalyzer.Console", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonModels", "CommonModels\CommonModels.csproj", "{21313865-878A-4C5E-93CF-6D020CE5B6A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionAnalyzer.Test", "SessionAnalyzer\SessionAnalyzer.Test\SessionAnalyzer.Test.csproj", "{EB8086A4-9053-4840-AC65-7129C0ED8318}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -159,6 +161,18 @@ Global
 		{21313865-878A-4C5E-93CF-6D020CE5B6A3}.Release|x64.Build.0 = Release|Any CPU
 		{21313865-878A-4C5E-93CF-6D020CE5B6A3}.Release|x86.ActiveCfg = Release|Any CPU
 		{21313865-878A-4C5E-93CF-6D020CE5B6A3}.Release|x86.Build.0 = Release|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Debug|x64.Build.0 = Debug|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Debug|x86.Build.0 = Debug|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Release|x64.ActiveCfg = Release|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Release|x64.Build.0 = Release|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Release|x86.ActiveCfg = Release|Any CPU
+		{EB8086A4-9053-4840-AC65-7129C0ED8318}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -172,6 +186,7 @@ Global
 		{F0504D2D-B4F0-698F-4C5C-1F5C689B0E19} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{0DAD6BBE-DF50-4541-AF87-6A5BE95F0AA8} = {AFB80DE6-7058-4A0E-865C-3DBE29561023}
 		{62F5C5CB-E92E-4E3F-9B33-05C4AEC48ABB} = {AFB80DE6-7058-4A0E-865C-3DBE29561023}
+		{EB8086A4-9053-4840-AC65-7129C0ED8318} = {AFB80DE6-7058-4A0E-865C-3DBE29561023}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B1871F78-9F03-4542-AAB3-754965E50D0D}

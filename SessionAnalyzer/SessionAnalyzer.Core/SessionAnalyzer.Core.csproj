@@ -21,4 +21,8 @@
     <Folder Include="Repository\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="SessionAnalyzer.Test" />
+  </ItemGroup>
+
 </Project>
