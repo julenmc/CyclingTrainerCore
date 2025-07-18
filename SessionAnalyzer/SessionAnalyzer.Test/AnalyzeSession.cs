@@ -7,6 +7,8 @@ namespace SessionAnalyzer.Test
     [TestClass]
     public sealed class AnalyzeContinuousSession
     {
+        const int FirstSectorTime = 1200;
+        const int FirstSectorPower = 150;
         List<FitnessData> fitnessData = default!;
         List<FitnessSection> fitnessTestSections = new List<FitnessSection>
         {
@@ -19,13 +21,7 @@ namespace SessionAnalyzer.Test
         public void SetUp()
         {
             fitnessData = new List<FitnessData>();
-            double totalTime = 0;
-            foreach (FitnessSection section in fitnessTestSections)
-            {
-                totalTime = section.Time;
-            }
-
-            DateTime startDate = DateTime.Now.AddSeconds(-totalTime);
+            DateTime startDate = new DateTime(2025, 07, 14, 12, 00, 00);
             foreach (FitnessSection section in fitnessTestSections)
             {
                 for (int i = 0; i < section.Time; i++)
@@ -55,9 +51,55 @@ namespace SessionAnalyzer.Test
         }
 
         [TestMethod]
-        public void PowerInervals()
+        public void PowerIntervals()
         {
-            
+            AnalyzedData data = DataAnalyzeService.AnalyzeFitnessData(fitnessData);
+            List<Interval> intervals = new List<Interval>()
+            {
+                new Interval
+                {
+                    StartTime = new DateTime(2025, 07, 14, 12, 00, 00),
+                    EndTime = new DateTime(2025, 07, 14, 12, 20, 00),
+                    AveragePower = 150,
+                    AverageCadence = 85,
+                    AverageHeartRate = 120
+                },
+                new Interval
+                {
+                    StartTime = new DateTime(2025, 07, 14, 12, 20, 00),
+                    EndTime = new DateTime(2025, 07, 14, 12, 40, 00),
+                    AveragePower = 200,
+                    AverageCadence = 90,
+                    AverageHeartRate = 150
+                },
+                new Interval
+                {
+                    StartTime = new DateTime(2025, 07, 14, 12, 40, 00),
+                    EndTime = new DateTime(2025, 07, 14, 13, 00, 00),
+                    AveragePower = 250,
+                    AverageCadence = 95,
+                    AverageHeartRate = 180
+                }
+            };
+            Assert.AreEqual(data.Intervals?.Count, intervals.Count);
+            for (int i = 0; i < intervals.Count; i++)
+            {
+                Assert.AreEqual(data.Intervals?[i].AveragePower, intervals[i].AveragePower);
+                Assert.AreEqual(data.Intervals?[i].AverageHeartRate, intervals[i].AverageHeartRate);
+                Assert.AreEqual(data.Intervals?[i].AverageCadence, intervals[i].AverageCadence);
+            }
+        }
+
+        [TestMethod]
+        public void PowerCurve()
+        {
+            AnalyzedData data = DataAnalyzeService.AnalyzeFitnessData(fitnessData);
+            Dictionary<int, int> curve = new Dictionary<int, int>();
+            Assert.AreEqual(data.PowerCurve?.Count, curve.Count);
+            for (int i = 0; i < curve.Count; i++)
+            {
+                Assert.AreEqual(data.PowerCurve?[i], curve[i]);
+            }
         }
     }
 
@@ -76,13 +118,7 @@ namespace SessionAnalyzer.Test
         public void SetUp()
         {
             fitnessData = new List<FitnessData>();
-            double totalTime = 0;
-            foreach (FitnessSection section in fitnessTestSections)
-            {
-                totalTime = section.Time;
-            }
-
-            DateTime startDate = DateTime.Now.AddSeconds(-totalTime-60);
+            DateTime startDate = new DateTime(2025, 07, 14, 12, 00, 00);
             foreach (FitnessSection section in fitnessTestSections)
             {
                 for (int i = 0; i < section.Time; i++)
@@ -138,13 +174,7 @@ namespace SessionAnalyzer.Test
         public void SetUp()
         {
             fitnessData = new List<FitnessData>();
-            double totalTime = 0;
-            foreach (FitnessSection section in fitnessTestSections)
-            {
-                totalTime = section.Time;
-            }
-
-            DateTime startDate = DateTime.Now.AddSeconds(-totalTime-60);
+            DateTime startDate = new DateTime(2025, 07, 14, 12, 00, 00);
             foreach (FitnessSection section in fitnessTestSections)
             {
                 for (int i = 0; i < section.Time; i++)
