@@ -1,4 +1,4 @@
-namespace TrainingDatabase.Core.Models
+namespace CyclingTrainer.TrainingDatabase.Core.Models
 {
     public class Cyclist
     {

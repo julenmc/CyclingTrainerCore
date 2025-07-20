@@ -1,8 +1,8 @@
-﻿using CommonModels;
-using TrainingDatabase.Core.Models;
-using TrainingDatabase.Core.Repository;
+﻿using CyclingTrainer.Core.Models;
+using CyclingTrainer.TrainingDatabase.Core.Models;
+using CyclingTrainer.TrainingDatabase.Core.Repository;
 
-namespace TrainingDatabase.App
+namespace CyclingTrainer.TrainingDatabase.App
 {
     class Program
     {

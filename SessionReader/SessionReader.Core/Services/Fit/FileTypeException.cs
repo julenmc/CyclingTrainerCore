@@ -7,7 +7,7 @@
 
 using System;
 
-namespace SessionReader.Core.Services.Fit
+namespace CyclingTrainer.SessionReader.Core.Services.Fit
 {
     public class FileTypeException : Exception
     {

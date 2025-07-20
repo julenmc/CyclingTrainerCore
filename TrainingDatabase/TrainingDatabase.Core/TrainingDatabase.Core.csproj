@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CommonModels\CommonModels.csproj" />
+    <ProjectReference Include="..\..\CyclingTrainer.Core\CyclingTrainer.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

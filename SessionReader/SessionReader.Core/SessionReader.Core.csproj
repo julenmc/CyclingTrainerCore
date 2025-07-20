@@ -13,11 +13,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CommonModels\CommonModels.csproj" />
+    <ProjectReference Include="..\..\CyclingTrainer.Core\CyclingTrainer.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Repository\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SessionReader.Test" />
   </ItemGroup>
 
 </Project>

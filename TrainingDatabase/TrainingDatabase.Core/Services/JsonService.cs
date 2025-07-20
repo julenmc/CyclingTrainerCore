@@ -2,17 +2,18 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace TrainingDatabase.Core.Services
+namespace CyclingTrainer.TrainingDatabase.Core.Services
 {
     internal static class JsonService
     {
         internal static Dictionary<int, int>? LoadCurveFromJson(string json)
         {
             if (json == null) return null;
-            var data = JsonSerializer.Deserialize<Dictionary<string, int>>(json);
+            Dictionary<string, int>? data = JsonSerializer.Deserialize<Dictionary<string, int>>(json);
 
             var curve = new Dictionary<int, int>();
 
+            if (data == null) throw new Exception("Invalid raw curve");
             foreach (var kvp in data)
             {
                 if (int.TryParse(kvp.Key, out int seconds))

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dynastream.Fit;
 
-namespace SessionReader.Core.Services.Fit
+namespace CyclingTrainer.SessionReader.Core.Services.Fit
 {
     public class ActivityParser
     {

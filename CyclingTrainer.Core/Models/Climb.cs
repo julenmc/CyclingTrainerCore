@@ -1,4 +1,4 @@
-namespace CommonModels
+namespace CyclingTrainer.Core.Models
 {
     public class Climb
     {

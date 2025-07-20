@@ -27,7 +27,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionAnalyzer.Core", "Ses
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionAnalyzer.Console", "SessionAnalyzer\SessionAnalyzer.Console\SessionAnalyzer.Console.csproj", "{62F5C5CB-E92E-4E3F-9B33-05C4AEC48ABB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonModels", "CommonModels\CommonModels.csproj", "{21313865-878A-4C5E-93CF-6D020CE5B6A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyclingTrainer.Core", "CyclingTrainer.Core\CyclingTrainer.Core.csproj", "{21313865-878A-4C5E-93CF-6D020CE5B6A3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionAnalyzer.Test", "SessionAnalyzer\SessionAnalyzer.Test\SessionAnalyzer.Test.csproj", "{EB8086A4-9053-4840-AC65-7129C0ED8318}"
 EndProject

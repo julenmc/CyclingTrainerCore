@@ -1,6 +1,6 @@
-﻿using CommonModels;
+﻿using CyclingTrainer.Core.Models;
 
-namespace SessionReader.Core.Models
+namespace CyclingTrainer.SessionReader.Core.Models
 {
     public class RouteSections
     {

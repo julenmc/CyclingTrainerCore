@@ -1,9 +1,9 @@
 ﻿using GpxTools;
 using GpxTools.Gpx;
-using SessionReader.Core.Models;
-using static SessionReader.Core.Services.ISessionReader;
+using CyclingTrainer.SessionReader.Core.Models;
+using static CyclingTrainer.SessionReader.Core.Services.ISessionReader;
 
-namespace SessionReader.Core.Services.Gpx
+namespace CyclingTrainer.SessionReader.Core.Services.Gpx
 {
     public class GpxReader : ISessionReader
     {

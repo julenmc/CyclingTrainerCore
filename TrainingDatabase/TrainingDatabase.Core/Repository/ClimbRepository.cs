@@ -1,8 +1,8 @@
-﻿using CommonModels;
-using TrainingDatabase.Core.Models;
-using TrainingDatabase.Core.Services;
+﻿using CyclingTrainer.Core.Models;
+using CyclingTrainer.TrainingDatabase.Core.Models;
+using CyclingTrainer.TrainingDatabase.Core.Services;
 
-namespace TrainingDatabase.Core.Repository
+namespace CyclingTrainer.TrainingDatabase.Core.Repository
 {
     public static class ClimbRepository
     {

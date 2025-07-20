@@ -1,11 +1,11 @@
 ﻿using NLog;
-using CommonModels;
-using SessionReader.Core.Models;
-using SessionReader.Core.Services;
-using SessionReader.Core.Services.Fit;
-using SessionReader.Core.Services.Gpx;
+using CyclingTrainer.Core.Models;
+using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionReader.Core.Services;
+using CyclingTrainer.SessionReader.Core.Services.Fit;
+using CyclingTrainer.SessionReader.Core.Services.Gpx;
 
-namespace SessionReader.Core.Repository
+namespace CyclingTrainer.SessionReader.Core.Repository
 {
     public static class SessionRepository
     {

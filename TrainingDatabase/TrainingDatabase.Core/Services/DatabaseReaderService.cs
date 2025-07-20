@@ -1,8 +1,8 @@
-using CommonModels;
-using TrainingDatabase.Core.Models;
+using CyclingTrainer.Core.Models;
+using CyclingTrainer.TrainingDatabase.Core.Models;
 using Microsoft.Data.Sqlite;
 
-namespace TrainingDatabase.Core.Services
+namespace CyclingTrainer.TrainingDatabase.Core.Services
 {
     internal static class DatabaseReaderService
     {

@@ -1,6 +1,6 @@
-﻿using CommonModels;
-using SessionReader.Core.Repository;
-using SessionAnalyzer.Core.Services;
+﻿using CyclingTrainer.Core.Models;
+using CyclingTrainer.SessionReader.Core.Repository;
+using CyclingTrainer.SessionAnalyzer.Core.Services;
 
 namespace SessionAnalyzer.Console
 {

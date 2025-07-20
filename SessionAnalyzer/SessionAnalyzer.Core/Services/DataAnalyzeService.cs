@@ -1,10 +1,10 @@
-﻿using CommonModels;
+﻿using CyclingTrainer.Core.Models;
 using Dapper;
 using NLog;
-using SessionReader.Core.Models;
-using SessionReader.Core.Repository;
+using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionReader.Core.Repository;
 
-namespace SessionAnalyzer.Core.Services
+namespace CyclingTrainer.SessionAnalyzer.Core.Services
 {
     public static class DataAnalyzeService
     {

@@ -1,8 +1,8 @@
-﻿using CommonModels;
-using SessionReader.Core.Models;
-using SessionReader.Core.Repository;
+﻿using CyclingTrainer.Core.Models;
+using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionReader.Core.Repository;
 
-namespace SessionReader.Console
+namespace CyclingTrainer.SessionReader.Console
 {
     public static class Program
     {

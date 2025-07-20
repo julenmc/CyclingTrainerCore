@@ -1,8 +1,8 @@
-﻿using CommonModels;
+﻿using CyclingTrainer.Core.Models;
 using NLog;
-using TrainingDatabase.Core.Repository;
+using CyclingTrainer.TrainingDatabase.Core.Repository;
 
-namespace SessionAnalyzer.Core.Services
+namespace CyclingTrainer.SessionAnalyzer.Core.Services
 {
     internal static class ClimbSearchService
     {
