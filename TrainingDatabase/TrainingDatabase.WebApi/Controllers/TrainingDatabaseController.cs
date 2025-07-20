@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using TrainingDatabase.Core.Models;
-using TrainingDatabase.Core.Services;
+using CyclingTrainer.TrainingDatabase.Core.Models;
+using CyclingTrainer.TrainingDatabase.Core.Services;
 
-namespace TrainingDatabase.WebApi.Controllers
+namespace CyclingTrainer.TrainingDatabase.WebApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]

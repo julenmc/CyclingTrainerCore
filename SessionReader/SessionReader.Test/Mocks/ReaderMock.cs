@@ -1,10 +1,10 @@
 ﻿using NLog;
-using SessionReader.Core.Models;
-using SessionReader.Core.Repository;
-using SessionReader.Core.Services;
-using static SessionReader.Core.Services.ISessionReader;
+using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionReader.Core.Repository;
+using CyclingTrainer.SessionReader.Core.Services;
+using static CyclingTrainer.SessionReader.Core.Services.ISessionReader;
 
-namespace SessionReader.Test.Mocks
+namespace CyclingTrainer.SessionReader.Test.Mocks
 {
     public class ReaderMock : ISessionReader
     {

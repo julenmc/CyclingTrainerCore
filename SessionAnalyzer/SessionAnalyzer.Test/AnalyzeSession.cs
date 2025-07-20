@@ -1,6 +1,6 @@
-﻿using CommonModels;
-using SessionAnalyzer.Core.Services;
-using SessionReader.Core.Models;
+﻿using CyclingTrainer.Core.Models;
+using CyclingTrainer.SessionAnalyzer.Core.Services;
+using CyclingTrainer.SessionReader.Core.Models;
 
 namespace SessionAnalyzer.Test
 {

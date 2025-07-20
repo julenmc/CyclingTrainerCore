@@ -1,9 +1,9 @@
-﻿using CommonModels;
-using SessionReader.Core.Models;
-using SessionReader.Core.Repository;
-using SessionReader.Test.Mocks;
+﻿using CyclingTrainer.Core.Models;
+using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionReader.Core.Repository;
+using CyclingTrainer.SessionReader.Test.Mocks;
 
-namespace SessionReader.Test
+namespace CyclingTrainer.SessionReader.Test
 {
     [TestClass]
     public class IrregularClimbs
