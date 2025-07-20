@@ -1,4 +1,5 @@
 ﻿using CyclingTrainer.Core.Models;
+using CyclingTrainer.Core.Constants;
 using CyclingTrainer.SessionAnalyzer.Core.Services;
 using CyclingTrainer.SessionReader.Core.Models;
 
@@ -7,8 +8,6 @@ namespace SessionAnalyzer.Test
     [TestClass]
     public sealed class AnalyzeContinuousSession
     {
-        const int FirstSectorTime = 1200;
-        const int FirstSectorPower = 150;
         List<FitnessData> fitnessData = default!;
         List<FitnessSection> fitnessTestSections = new List<FitnessSection>
         {
@@ -94,12 +93,20 @@ namespace SessionAnalyzer.Test
         public void PowerCurve()
         {
             AnalyzedData data = DataAnalyzeService.AnalyzeFitnessData(fitnessData);
-            Dictionary<int, int> curve = new Dictionary<int, int>();
-            Assert.AreEqual(data.PowerCurve?.Count, curve.Count);
-            for (int i = 0; i < curve.Count; i++)
+            Dictionary<int, int> curve = new Dictionary<int, int>
             {
-                Assert.AreEqual(data.PowerCurve?[i], curve[i]);
-            }
+                { 1, 250 },
+                { 60, 250 },
+                { 1200, 250 },
+                { 2400, 225 },
+                { 3600, 200 }
+            };
+            Assert.AreEqual(data.PowerCurve?.Count, curve.Count);
+            Assert.AreEqual(data.PowerCurve?[1].Power, curve[1]);
+            Assert.AreEqual(data.PowerCurve?[60].Power, curve[60]);
+            Assert.AreEqual(data.PowerCurve?[1200].Power, curve[1200]);
+            Assert.AreEqual(data.PowerCurve?[2400].Power, curve[2400]);
+            Assert.AreEqual(data.PowerCurve?[3600].Power, curve[3600]);
         }
     }
 

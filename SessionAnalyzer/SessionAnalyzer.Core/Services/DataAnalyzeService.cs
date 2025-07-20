@@ -11,6 +11,8 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private const int MaxTimeDiff = 3000;
+        private static Dictionary<int, double> _currentPowerCurve = default!;
+        private static Dictionary<int, double> _maxPowerCurve = default!;
 
         public static Session AnalyzeData()
         {
@@ -25,6 +27,9 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
             double totalPower = 0;
             double totalHr = 0;
             double totalCadence = 0;
+            _currentPowerCurve = new Dictionary<int, double>();
+            _maxPowerCurve = new Dictionary<int, double>();
+
             for (int i = 0; i < fitnessData.Count - 1; i++)
             {
                 double timeDiff = fitnessData[i + 1].Timestamp.GetDateTime().Subtract(fitnessData[i].Timestamp.GetDateTime()).TotalMilliseconds;
@@ -50,6 +55,11 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
             data.AverageHr = (int)Math.Round(totalHr / totalMiliSeconds);
             data.AverageCadence = (int)Math.Round(totalCadence / totalMiliSeconds);
             return data;
+        }
+
+        private static void UpdatePowerCurve()
+        {
+            
         }
     }
 }

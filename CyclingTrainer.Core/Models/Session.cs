@@ -11,7 +11,7 @@ namespace CyclingTrainer.Core.Models
         public double HeightDiff { get; set; }
         public bool IsIndoor { get; set; }
         public AnalyzedData AnalyzedData { get; set; } = default!;
-}
+    }
 
     public class AnalyzedData
     {
@@ -22,6 +22,13 @@ namespace CyclingTrainer.Core.Models
         public int AveragePower { get; set; }
         public int AverageCadence { get; set; }
         public string? PowerCurveRaw { get; set; }
-        public Dictionary<int, int>? PowerCurve { get; set; }
+        public Dictionary<int, PowerCurveData>? PowerCurve { get; set; }
+    }
+
+    public class PowerCurveData
+    {
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public double Power { get; set; }
     }
 }
