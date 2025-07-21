@@ -1,3 +1,5 @@
+using CyclingTrainer.Core.Models;
+
 namespace CyclingTrainer.TrainingDatabase.Core.Models
 {
     public class CyclistEvolution
@@ -7,6 +9,6 @@ namespace CyclingTrainer.TrainingDatabase.Core.Models
         public float Weight { get; set; }
         public float Vo2Max { get; set; }
         public string? MaxPowerCurveRaw { get; set; }
-        public Dictionary<int, int>? MaxPowerCurve { get; set; }
+        public Dictionary<int, PowerCurveData>? MaxPowerCurve { get; set; }
     }
 }

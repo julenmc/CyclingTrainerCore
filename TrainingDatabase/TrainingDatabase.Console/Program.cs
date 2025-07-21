@@ -32,16 +32,16 @@ namespace CyclingTrainer.TrainingDatabase.App
                     Height = 180,
                     Weight = 75,
                     Vo2Max = 50.0f,
-                    MaxPowerCurve = new Dictionary<int, int>
+                    MaxPowerCurve = new Dictionary<int, PowerCurveData>
                     {
-                        { 15, 600 },
-                        { 30, 500 },
-                        { 60, 380 },
-                        { 120, 350 },
-                        { 300, 300 },
-                        { 480, 280 },
-                        { 600, 265 },
-                        { 1200, 250 }
+                        { 15, new PowerCurveData { Power = 600 } },
+                        { 30, new PowerCurveData { Power = 500 } },
+                        { 60, new PowerCurveData { Power = 380 } },
+                        { 120, new PowerCurveData { Power = 350 } },
+                        { 300, new PowerCurveData { Power = 300 } },
+                        { 480, new PowerCurveData { Power = 280 } },
+                        { 600, new PowerCurveData { Power = 265 } },
+                        { 1200, new PowerCurveData { Power = 250 } }
                     }
                 },
             };
@@ -74,16 +74,16 @@ namespace CyclingTrainer.TrainingDatabase.App
                     Calories = 800,
                     AverageHr = 150,
                     AveragePower = 250,
-                    PowerCurve = new Dictionary<int, int>
+                    PowerCurve = new Dictionary<int, PowerCurveData>
                     {
-                        { 15, 600 },
-                        { 30, 500 },
-                        { 60, 380 },
-                        { 120, 350 },
-                        { 300, 300 },
-                        { 480, 280 },
-                        { 600, 265 },
-                        { 1200, 250 }
+                        { 15, new PowerCurveData { Power = 600 } },
+                        { 30, new PowerCurveData { Power = 500 } },
+                        { 60, new PowerCurveData { Power = 380 } },
+                        { 120, new PowerCurveData { Power = 350 } },
+                        { 300, new PowerCurveData { Power = 300 } },
+                        { 480, new PowerCurveData { Power = 280 } },
+                        { 600, new PowerCurveData { Power = 265 } },
+                        { 1200, new PowerCurveData { Power = 250 } }
                     },
                     Intervals = new List<Interval>
                     {
