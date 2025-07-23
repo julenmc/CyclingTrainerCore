@@ -16,25 +16,25 @@ namespace CyclingTrainer.SessionReader.Core.Repository
 
         internal static Session AnalyzeRoute(ISessionReader reader)
         {
-            return Analyze(reader);
+            return Read(reader);
         }
 
-        public static Session AnalyzeRoute(string path)
+        public static Session ReadRoute(string path)
         {
             switch (Path.GetExtension(path))
             {
                 case ".fit":
                     FitReader fitReader = new FitReader(path);
-                    return Analyze(fitReader);
+                    return Read(fitReader);
                 case ".gpx":
                     GpxReader gpxReader = new GpxReader(path);
-                    return Analyze(gpxReader);
+                    return Read(gpxReader);
                 default:
                     throw new ArgumentException("File not valid");
             }
         }
 
-        private static Session Analyze(ISessionReader reader)
+        private static Session Read(ISessionReader reader)
         {
             reader.Read();
             _session = new Session();

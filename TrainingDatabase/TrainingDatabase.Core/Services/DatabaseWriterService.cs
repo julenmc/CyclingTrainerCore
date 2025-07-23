@@ -1,5 +1,4 @@
 ﻿using CyclingTrainer.Core.Models;
-using CyclingTrainer.TrainingDatabase.Core.Models;
 using Microsoft.Data.Sqlite;
 
 namespace CyclingTrainer.TrainingDatabase.Core.Services
@@ -39,7 +38,7 @@ namespace CyclingTrainer.TrainingDatabase.Core.Services
             }
         }
 
-        internal static async Task AddCyclistEvolutionAsync(string path, int cyclistId, CyclistEvolution evolution)
+        internal static async Task AddCyclistEvolutionAsync(string path, int cyclistId, CyclistFitnessData evolution)
         {
             using (var connection = new SqliteConnection(path))
             {

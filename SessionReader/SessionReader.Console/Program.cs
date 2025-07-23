@@ -12,7 +12,7 @@ namespace CyclingTrainer.SessionReader.Console
         {
             Logger.Info("Start Session Reader Test");
             
-            Session session = SessionRepository.AnalyzeRoute(@"Resources/19652409585_ACTIVITY.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
+            Session session = SessionRepository.ReadRoute(@"Resources/19652409585_ACTIVITY.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
             RouteSections routeData = SessionRepository.GetRouteData();
             List<FitnessData> fitnessData = SessionRepository.GetFitnessData();
             Logger.Info($"Route {session.Name} info: Lenght = {session.Distance}m. Elevation = {session.HeightDiff}m"); 

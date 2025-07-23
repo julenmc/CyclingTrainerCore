@@ -2,8 +2,10 @@
 using NLog;
 using CyclingTrainer.SessionReader.Core.Models;
 using CyclingTrainer.SessionReader.Core.Repository;
+using CyclingTrainer.TrainingDatabase.Core.Repository;
 
 using static CyclingTrainer.Core.Constants.PowerCurveConstants;
+using Dynastream.Fit;
 
 namespace CyclingTrainer.SessionAnalyzer.Core.Services
 {
@@ -20,7 +22,14 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
             return SessionRepository.GetSession();
         }
 
-        internal static AnalyzedData AnalyzeFitnessData(List<FitnessData> fitnessData)
+        public static Session AnalyzeData(int cyclistId)
+        {
+            List<FitnessData> fitnessData = SessionRepository.GetFitnessData();
+            SessionRepository.UpdateAnalyzedData(AnalyzeFitnessData(fitnessData, CyclistsRepository.Get(cyclistId)?.FitnessData));
+            return SessionRepository.GetSession();
+        }
+
+        internal static AnalyzedData AnalyzeFitnessData(List<FitnessData> fitnessData, CyclistFitnessData? cyclistData = null)
         {
             double totalMiliseconds = 0;            // Tiempo total de la actividad
             double currentSectorMiliseconds = 0;    // Tiempo total del sector, se resetea cuando detecta un hueco sin datos
@@ -30,8 +39,8 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
             double timeDiff = 0;
             int index = 0;
             int currentFirstItemIndex = 0;
+            AnalyzedData data = new AnalyzedData();
             Dictionary<int, PowerCurveSectorInfo> currentPowerCurve = new Dictionary<int, PowerCurveSectorInfo>();
-            Dictionary<int, PowerCurveData> maxPowerCurve = new Dictionary<int, PowerCurveData>();
             CreateInitialPowerCurve();
 
             for (index = 0; index < fitnessData.Count - 1; index++)
@@ -50,29 +59,39 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
                 currentSectorMiliseconds += timeDiff;
 
                 // Handle averages
-                totalPower += (fitnessData[index].Stats.Power ?? 0) * timeDiff;
-                totalHr += (fitnessData[index].Stats.HeartRate ?? 0) * timeDiff;
-                totalCadence += (fitnessData[index].Stats.Cadence ?? 0) * timeDiff;
-
+                UpdateAverages(timeDiff);
                 // Handle power curve
                 UpdatePowerCurve(timeDiff);
+                // Handle zones
+                if (cyclistData != null)
+                {
+                    UpdateHrZone(timeDiff);
+                    UpdatePowerZone(timeDiff);
+                }
+                
             }
             // Add last point info
             totalMiliseconds += 1000;
             currentSectorMiliseconds += 1000;
-            totalPower += (double)(fitnessData.Last().Stats.Power ?? 0) * 1000;
-            totalHr += (double)(fitnessData.Last().Stats.HeartRate ?? 0) * 1000;
-            totalCadence += (double)(fitnessData.Last().Stats.Cadence ?? 0) * 1000;
+            UpdateAverages(1000);
             UpdatePowerCurve(1000);
 
             // Get averages
-            AnalyzedData data = new AnalyzedData();
             data.AveragePower = (int)Math.Round(totalPower / totalMiliseconds);
             data.AverageHr = (int)Math.Round(totalHr / totalMiliseconds);
             data.AverageCadence = (int)Math.Round(totalCadence / totalMiliseconds);
-            data.PowerCurve = maxPowerCurve;
             return data;
 
+            #region Averages
+            void UpdateAverages(double time)
+            {
+                totalPower += (fitnessData[index].Stats.Power ?? 0) * time;
+                totalHr += (fitnessData[index].Stats.HeartRate ?? 0) * time;
+                totalCadence += (fitnessData[index].Stats.Cadence ?? 0) * time;
+            }
+            #endregion
+
+            #region PowerCurve
             void CreateInitialPowerCurve()
             {
                 currentPowerCurve = new Dictionary<int, PowerCurveSectorInfo>();
@@ -91,20 +110,20 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
                         currentPowerCurve[time].PowerSum += (fitnessData[index].Stats.Power ?? 0) * sectorTime;
                         if (currentSectorMiliseconds / 1000 == time)
                         {
-                            PowerCurveData data = new PowerCurveData
+                            PowerCurveData powerCurveData = new PowerCurveData
                             {
                                 StartDate = fitnessData[currentFirstItemIndex].Timestamp.GetDateTime(),
                                 EndDate = fitnessData[index].Timestamp.GetDateTime(),
                                 Power = Math.Round(currentPowerCurve[time].PowerSum / (time * 1000), 2),
                             };
-                            if (!maxPowerCurve.ContainsKey(time))
+                            if (!data.PowerCurve.ContainsKey(time))
                             {
-                                maxPowerCurve.Add(time, data);
+                                data.PowerCurve.Add(time, powerCurveData);
                             }
-                            else if (data.Power > maxPowerCurve[time].Power)
+                            else if (powerCurveData.Power > data.PowerCurve[time].Power)
                             {
-                                maxPowerCurve[time] = data;
-                                Log.Debug($"New max power at {time}s found: {data.Power}W");
+                                data.PowerCurve[time] = powerCurveData;
+                                Log.Debug($"New max power at {time}s found: {powerCurveData.Power}W");
                             }
                         }
                     }
@@ -113,10 +132,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
                         // Busca el siguiente punto para que coincida con el tiempo de la curva
                         int newIndex = currentPowerCurve[time].StartIndex + 1;
                         double curvePointTime = fitnessData[index].Timestamp.GetDateTime().Subtract(fitnessData[newIndex].Timestamp.GetDateTime()).TotalSeconds + sectorTime / 1000;
-                        // if (index > 158 && time == 60)
-                        // {
-                        //     newIndex = newIndex;
-                        // }
+
                         while (curvePointTime > time)
                         {
                             newIndex++;
@@ -124,7 +140,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
                         }
                         if (curvePointTime != time)
                         {
-                            currentPowerCurve[time].PowerSum += (fitnessData[index].Stats.Power ?? 0) * sectorTime;
+                            currentPowerCurve[time].PowerSum += (fitnessData[index].Stats.Power ?? 0) * sectorTime; // Hay que sumar el tiempo porque si no este sector se pierde
                             continue;   // Se ha pasado, este tiempo no vale
                         }
 
@@ -140,16 +156,33 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
 
                         // Actualizar la potencia maxima en caso de que sea necesario
                         double powerAverage = Math.Round(currentPowerCurve[time].PowerSum / (time * 1000), 2);
-                        if (powerAverage > maxPowerCurve[time].Power)
+                        if (powerAverage > data.PowerCurve[time].Power)
                         {
-                            maxPowerCurve[time].Power = powerAverage;
-                            maxPowerCurve[time].StartDate = fitnessData[currentPowerCurve[time].StartIndex].Timestamp.GetDateTime();
-                            maxPowerCurve[time].EndDate = fitnessData[index].Timestamp.GetDateTime();
+                            data.PowerCurve[time].Power = powerAverage;
+                            data.PowerCurve[time].StartDate = fitnessData[currentPowerCurve[time].StartIndex].Timestamp.GetDateTime();
+                            data.PowerCurve[time].EndDate = fitnessData[index].Timestamp.GetDateTime();
                             Log.Debug($"New max power at {time}s found: {powerAverage}W ({fitnessData[index].Timestamp.GetDateTime()})");
                         }
                     }
                 }
             }
+            #endregion
+
+            #region HrZone
+            void UpdateHrZone(double time)
+            {
+                if (cyclistData.HrZones == null) throw new Exception
+                double timeSeconds = time / 1000;
+                foreach (Zone zone in cyclistData.HrZones)
+            }
+            #endregion
+
+            #region PowerZone
+            void UpdatePowerZone(double time)
+            {
+                double timeSeconds = time / 1000;
+            }
+            #endregion
         }
 
         internal class PowerCurveSectorInfo

@@ -1,4 +1,4 @@
-﻿using CyclingTrainer.TrainingDatabase.Core.Models;
+﻿using CyclingTrainer.Core.Models;
 using CyclingTrainer.TrainingDatabase.Core.Services;
 
 namespace CyclingTrainer.TrainingDatabase.Core.Repository
@@ -20,14 +20,14 @@ namespace CyclingTrainer.TrainingDatabase.Core.Repository
             foreach (Cyclist c in list)
             {
                 if (c == null) continue;
-                IEnumerable<CyclistEvolution> evolutions = await DatabaseReaderService.GetCyclistEvolutionAsync(DatabasePath, c.Id);
+                IEnumerable<CyclistFitnessData> evolutions = await DatabaseReaderService.GetCyclistEvolutionAsync(DatabasePath, c.Id);
                 if (evolutions.Count() == 0) continue;
                 var curve = evolutions.First()?.MaxPowerCurveRaw;
                 if (curve != null)
                 {
                     evolutions.First().MaxPowerCurve = JsonService.LoadCurveFromJson(curve) ?? null;
                 }
-                c.Details = evolutions.First();
+                c.FitnessData = evolutions.First();
                 _cyclists.Add(c.Id, c);
             }
         }
@@ -48,14 +48,14 @@ namespace CyclingTrainer.TrainingDatabase.Core.Repository
             int id = await DatabaseWriterService.AddCyclistAsync(DatabasePath, cyclist);
             cyclist.Id = id;
             _cyclists.Add(cyclist.Id, cyclist);
-            if (cyclist.Details != null)
+            if (cyclist.FitnessData != null)
             {
-                await UpdateCyclist(id, cyclist.Details);
+                await UpdateCyclist(id, cyclist.FitnessData);
             }
             return id;
         }
 
-        public static async Task UpdateCyclist(int id, CyclistEvolution evolution)
+        public static async Task UpdateCyclist(int id, CyclistFitnessData evolution)
         {
             Cyclist? cyclist = Get(id);
             if (cyclist == null) throw new Exception("Cyclist ID not found!");
@@ -64,12 +64,12 @@ namespace CyclingTrainer.TrainingDatabase.Core.Repository
             await DatabaseWriterService.AddCyclistEvolutionAsync(DatabasePath, id, evolution);
         }
 
-        private static void ApplyCurrentStats(CyclistEvolution evolution, Cyclist cyclist)
+        private static void ApplyCurrentStats(CyclistFitnessData evolution, Cyclist cyclist)
         {
-            if (evolution.Height == 0) evolution.Height = cyclist.Details.Height;
-            if (evolution.Weight == 0) evolution.Weight = cyclist.Details.Weight;
-            if (evolution.Vo2Max == 0) evolution.Vo2Max = cyclist.Details.Vo2Max;
-            if (evolution.MaxPowerCurve == null) evolution.MaxPowerCurve = cyclist.Details.MaxPowerCurve;
+            if (evolution.Height == 0) evolution.Height = cyclist.FitnessData.Height;
+            if (evolution.Weight == 0) evolution.Weight = cyclist.FitnessData.Weight;
+            if (evolution.Vo2Max == 0) evolution.Vo2Max = cyclist.FitnessData.Vo2Max;
+            if (evolution.MaxPowerCurve == null) evolution.MaxPowerCurve = cyclist.FitnessData.MaxPowerCurve;
         }
     }
 }

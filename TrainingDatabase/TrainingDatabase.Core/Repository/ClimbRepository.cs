@@ -1,5 +1,4 @@
 ﻿using CyclingTrainer.Core.Models;
-using CyclingTrainer.TrainingDatabase.Core.Models;
 using CyclingTrainer.TrainingDatabase.Core.Services;
 
 namespace CyclingTrainer.TrainingDatabase.Core.Repository

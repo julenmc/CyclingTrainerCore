@@ -1,5 +1,4 @@
 using CyclingTrainer.Core.Models;
-using CyclingTrainer.TrainingDatabase.Core.Models;
 using Microsoft.Data.Sqlite;
 
 namespace CyclingTrainer.TrainingDatabase.Core.Services
@@ -35,9 +34,9 @@ namespace CyclingTrainer.TrainingDatabase.Core.Services
             return cyclists;
         }
 
-        internal static async Task<IEnumerable<CyclistEvolution>> GetCyclistEvolutionAsync(string path, int cyclistId)
+        internal static async Task<IEnumerable<CyclistFitnessData>> GetCyclistEvolutionAsync(string path, int cyclistId)
         {
-            List<CyclistEvolution> evolutions = new List<CyclistEvolution>();
+            List<CyclistFitnessData> evolutions = new List<CyclistFitnessData>();
             using (var connection = new SqliteConnection(path))
             {
                 string query = @$"
@@ -51,7 +50,7 @@ namespace CyclingTrainer.TrainingDatabase.Core.Services
                     using var reader = await command.ExecuteReaderAsync();
                     while (await reader.ReadAsync())
                     {
-                        CyclistEvolution evolution = new CyclistEvolution
+                        CyclistFitnessData evolution = new CyclistFitnessData
                         {
                             UpdateDate = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(2)).DateTime,
                             Height = reader.GetInt32(3),

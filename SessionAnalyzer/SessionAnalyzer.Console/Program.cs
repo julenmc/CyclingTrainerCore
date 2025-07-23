@@ -12,7 +12,7 @@ namespace CyclingTrainer.SessionAnalyzer.Console
         {
             Logger.Info("Start Session Analyzer Test");
 
-            SessionRepository.AnalyzeRoute(@"Resources/19622171318_ACTIVITY.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
+            SessionRepository.ReadRoute(@"Resources/19622171318_ACTIVITY.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
             Session session = DataAnalyzeService.AnalyzeData();
 
             Logger.Info($"Route {session.Name} lenght: {session.Distance}m. Elevation: {session.HeightDiff}m");

@@ -1,5 +1,4 @@
 ﻿using CyclingTrainer.Core.Models;
-using CyclingTrainer.TrainingDatabase.Core.Models;
 using CyclingTrainer.TrainingDatabase.Core.Repository;
 
 namespace CyclingTrainer.TrainingDatabase.App
@@ -26,7 +25,7 @@ namespace CyclingTrainer.TrainingDatabase.App
                 Name = "Test",
                 LastName = "Cyclist",
                 BirthDate = new DateTime(1990, 1, 1),
-                Details = new CyclistEvolution
+                FitnessData = new CyclistFitnessData
                 {
                     UpdateDate = DateTime.Now,
                     Height = 180,
@@ -51,7 +50,7 @@ namespace CyclingTrainer.TrainingDatabase.App
 
         static async Task UpdateCyclistAsync(Cyclist cyclist)
         {
-            CyclistEvolution evolution = new CyclistEvolution()
+            CyclistFitnessData evolution = new CyclistFitnessData()
             {
                 UpdateDate = DateTime.Now,
                 Vo2Max = 50.0f,

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using CyclingTrainer.TrainingDatabase.Core.Models;
 using CyclingTrainer.TrainingDatabase.Core.Services;
 
 namespace CyclingTrainer.TrainingDatabase.WebApi.Controllers

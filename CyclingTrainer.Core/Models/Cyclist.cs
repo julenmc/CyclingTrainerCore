@@ -1,4 +1,4 @@
-namespace CyclingTrainer.TrainingDatabase.Core.Models
+namespace CyclingTrainer.Core.Models
 {
     public class Cyclist
     {
@@ -8,6 +8,6 @@ namespace CyclingTrainer.TrainingDatabase.Core.Models
         public string? FullName => $"{Name} {LastName}";
         public DateTime BirthDate { get; set; }
         public int Age => DateTime.Now.Year - BirthDate.Year - (DateTime.Now.DayOfYear < BirthDate.DayOfYear ? 1 : 0);
-        public CyclistEvolution Details { get; set; } = default!;
+        public CyclistFitnessData FitnessData { get; set; } = default!;
     }
 }

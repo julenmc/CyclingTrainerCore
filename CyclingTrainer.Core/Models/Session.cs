@@ -23,6 +23,8 @@ namespace CyclingTrainer.Core.Models
         public int AverageCadence { get; set; }
         public string? PowerCurveRaw { get; set; }
         public Dictionary<int, PowerCurveData>? PowerCurve { get; set; }
+        public Dictionary<Zone, int>? HrZones { get; set; } 
+        public Dictionary<Zone, int>? PowerZones { get; set; }
     }
 
     public class PowerCurveData
