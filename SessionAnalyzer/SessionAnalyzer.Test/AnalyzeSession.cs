@@ -3,7 +3,7 @@ using CyclingTrainer.Core.Constants;
 using CyclingTrainer.SessionAnalyzer.Core.Services;
 using CyclingTrainer.SessionReader.Core.Models;
 
-namespace SessionAnalyzer.Test
+namespace CyclingTrainer.SessionAnalyzer.Test
 {
     [TestClass]
     public sealed class AnalyzeContinuousSession
@@ -250,13 +250,5 @@ namespace SessionAnalyzer.Test
             Assert.AreEqual(curve[60], data.PowerCurve?[60].Power);
             Assert.IsTrue(curve[200] > data.PowerCurve?[200].Power);
         }
-    }
-
-    internal class FitnessSection
-    {
-        internal int Time;
-        internal int Power;
-        internal int HearRate;
-        internal int Cadence;
     }
 }

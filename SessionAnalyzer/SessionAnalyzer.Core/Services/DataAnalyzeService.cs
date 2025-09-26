@@ -171,9 +171,9 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services
             #region HrZone
             void UpdateHrZone(double time)
             {
-                if (cyclistData.HrZones == null) throw new Exception
+                if (cyclistData.HrZones == null) throw new Exception("No HR data found");
                 double timeSeconds = time / 1000;
-                foreach (Zone zone in cyclistData.HrZones)
+                // foreach (Zone zone in cyclistData.HrZones)
             }
             #endregion
 
