@@ -11,6 +11,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
         public static void SetFitnessData(List<FitnessData> fitnessData)
         {
             _fitnessData.Clear();
+            _sprints.Clear();
             _fitnessData.AddRange(fitnessData);
         }
 
@@ -21,7 +22,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
             // Remove sprint data points from fitness data
             _fitnessData.RemoveAll(data => 
                 data.Timestamp.GetDateTime() >= sprint.StartTime && 
-                data.Timestamp.GetDateTime() <= sprint.EndTime);
+                data.Timestamp.GetDateTime() < sprint.EndTime);
         }
 
         public static List<FitnessData> GetRemainingFitnessData()

@@ -1,10 +1,12 @@
 using CyclingTrainer.SessionAnalyzer.Core.Models;
 using CyclingTrainer.SessionReader.Core.Models;
+using NLog;
 
 namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
 {
     internal static class SprintService
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static int _minSprintTime;
         private static int _startTrigger;
         private static int _endTrigger;
@@ -24,11 +26,13 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
 
         public static void AnalyzeActivity(List<FitnessData> activityPoints)
         {
+            Log.Info($"Searching for sprints...");
             if (activityPoints == null || !activityPoints.Any())
                 return;
 
             IntervalRepository.SetFitnessData(activityPoints);
             DetectSprints();
+            Log.Info($"Sprint search finished");
         }
 
         private static void DetectSprints()
@@ -45,6 +49,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                 if (i >= points.Count)
                     break;
 
+                Log.Debug($"Possible sprint detected at index {i}");
                 var sprintStartIndex = i;
                 var sprintStartTime = points[i].Timestamp.GetDateTime();
                 var maxPower = points[i].Stats.Power ?? 0;
@@ -61,10 +66,12 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                     
                     if (currentPower < _endTrigger)
                     {
+                        Log.Debug($"Sprint might end at index {i}");
                         // Check if the next point continues as a sprint
                         var nextPower = points[i+1].Stats.Power ?? 0;
                         if (nextPower < _endTrigger)
                         {
+                            Log.Debug($"Sprint ends at index {i}");
                             break;
                         }
                     }
@@ -75,21 +82,24 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                     i++;
                 }
 
-                var sprintEndTime = points[Math.Max(0, i - 1)].Timestamp.GetDateTime();
+                var sprintEndTime = points[Math.Max(0, i)].Timestamp.GetDateTime();
                 var sprintDuration = (sprintEndTime - sprintStartTime).TotalSeconds;
 
                 // Solo guardar si supera el tiempo mínimo
+                Log.Debug($"Sprint duration = {sprintDuration} secs");
                 if (sprintDuration >= _minSprintTime)
                 {
                     var sprint = new Sprint
                     {
                         StartTime = sprintStartTime,
                         EndTime = sprintEndTime,
+                        TimeDiff = (int)sprintDuration,
                         MaxPower = maxPower,
                         AveragePower = (float)powerSum / pointCount
                     };
 
                     IntervalRepository.AddSprint(sprint);
+                    Log.Debug($"New sprint detected! Duration: {sprintDuration} s. AvrPower: {sprint.AveragePower} W");
 
                     // Como el repositorio elimina los puntos del sprint, necesitamos obtener los puntos restantes
                     points = IntervalRepository.GetRemainingFitnessData();
