@@ -8,6 +8,10 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
         private readonly static List<FitnessData> _fitnessData = new();
         private readonly static List<Sprint> _sprints = new();
 
+        private static List<AveragePowerModel> _10secAverages = new();
+        private static List<AveragePowerModel> _30secAverages = new();
+        private static List<AveragePowerModel> _60secAverages = new();
+
         public static void SetFitnessData(List<FitnessData> fitnessData)
         {
             _fitnessData.Clear();

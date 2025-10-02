@@ -1,0 +1,33 @@
+using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionAnalyzer.Test.Models;
+
+namespace CyclingTrainer.SessionAnalyzer.Test
+{
+    internal static class FitnessDataService
+    {
+        internal static List<FitnessData> SetData(List<FitnessSection> fitnessTestSections)
+        {
+            List<FitnessData> fitnessData = new List<FitnessData>();
+            DateTime startDate = new DateTime(2025, 07, 14, 12, 00, 00);
+            foreach (FitnessSection section in fitnessTestSections)
+            {
+                for (int i = 0; i < section.Time; i++)
+                {
+                    fitnessData.Add(new FitnessData
+                    {
+                        Timestamp = new Dynastream.Fit.DateTime(startDate),
+                        Stats = new PointStats
+                        {
+                            Power = section.Power,
+                            HeartRate = section.HearRate,
+                            Cadence = section.Cadence
+                        }
+                    });
+                    startDate = startDate.AddSeconds(1);
+                }
+            }
+
+            return fitnessData;
+        }
+    }
+}

@@ -1,4 +1,4 @@
-namespace CyclingTrainer.SessionAnalyzer.Test
+namespace CyclingTrainer.SessionAnalyzer.Test.Models
 {
     internal class FitnessSection
     {

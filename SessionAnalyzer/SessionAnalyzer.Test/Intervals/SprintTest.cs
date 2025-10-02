@@ -1,8 +1,9 @@
 using CyclingTrainer.SessionAnalyzer.Core.Models;
 using CyclingTrainer.SessionAnalyzer.Core.Services.Intervals;
+using CyclingTrainer.SessionAnalyzer.Test.Models;
 using CyclingTrainer.SessionReader.Core.Models;
 
-namespace CyclingTrainer.SessionAnalyzer.Test
+namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 {
     [TestClass]
     public sealed class SprintTest
@@ -31,7 +32,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test
                 new FitnessSection{ Time = 5, Power = 550, HearRate = 150, Cadence = 90},
                 new FitnessSection{ Time = 10, Power = 150, HearRate = 180, Cadence = 95},
             };
-            SetData(fitnessTestSections);
+            _fitnessData = FitnessDataService.SetData(fitnessTestSections);
             SprintService.SetConfiguration(5, 550, 500);
             SprintService.AnalyzeActivity(_fitnessData);
             List<Sprint> sprints = IntervalRepository.GetSprints();
@@ -53,7 +54,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test
                 new FitnessSection{ Time = 5, Power = 550, HearRate = 150, Cadence = 90},
                 new FitnessSection{ Time = 10, Power = 150, HearRate = 180, Cadence = 95},
             };
-            SetData(fitnessTestSections);
+            _fitnessData = FitnessDataService.SetData(fitnessTestSections);
             SprintService.SetConfiguration(5, 550, 500);
             SprintService.AnalyzeActivity(_fitnessData);
             List<Sprint> sprints = IntervalRepository.GetSprints();
@@ -75,7 +76,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test
                 new FitnessSection{ Time = 5, Power = 550, HearRate = 150, Cadence = 90},
                 new FitnessSection{ Time = 10, Power = 150, HearRate = 180, Cadence = 95},
             };
-            SetData(fitnessTestSections);
+            _fitnessData = FitnessDataService.SetData(fitnessTestSections);
             SprintService.SetConfiguration(5, 550, 500);
             SprintService.AnalyzeActivity(_fitnessData);
             List<Sprint> sprints = IntervalRepository.GetSprints();
@@ -111,29 +112,6 @@ namespace CyclingTrainer.SessionAnalyzer.Test
             catch (Exception ex)
             {
                 Assert.IsTrue(ex.Message.Contains("Start trigger must be greater than end trigger for hysteresis to work"));
-            }
-        }
-
-        private void SetData(List<FitnessSection> fitnessTestSections)
-        {
-            _fitnessData = new List<FitnessData>();
-            DateTime startDate = new DateTime(2025, 07, 14, 12, 00, 00);
-            foreach (FitnessSection section in fitnessTestSections)
-            {
-                for (int i = 0; i < section.Time; i++)
-                {
-                    _fitnessData.Add(new FitnessData
-                    {
-                        Timestamp = new Dynastream.Fit.DateTime(startDate),
-                        Stats = new PointStats
-                        {
-                            Power = section.Power,
-                            HeartRate = section.HearRate,
-                            Cadence = section.Cadence
-                        }
-                    });
-                    startDate = startDate.AddSeconds(1);
-                }
             }
         }
     }
