@@ -5,12 +5,13 @@ using NLog;
 
 namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
 {
-    internal static class IntervalsService
+    public static class IntervalsService
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        internal static List<Interval> FindIntervals(
+        public static List<Interval> Search(
             List<FitnessData> activityPoints,
+            int sprintPower, 
             float? cvStartThreshold = null,
             float? cvFollowThreshold = null,
             float? rangeThreshold = null,
@@ -40,7 +41,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
 
             // Detectar y eliminar sprints primero
             Log.Info("Starting sprint detection and removal...");
-            SprintService.SetConfiguration(30, 400, 300); // Valores ejemplo para sprint
+            SprintService.SetConfiguration(5, sprintPower, sprintPower*9/10);      
             SprintService.AnalyzeActivity(activityPoints);
             Log.Info("Sprint detection completed");
 
@@ -49,7 +50,8 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
 
             // Calcular medias móviles para diferentes ventanas de tiempo
             Log.Info("Calculating moving averages...");
-            var powerModels = AveragePowerCalculator.CalculateWindowAverages(remainingPoints);
+            int windowSize = AveragePowerCalculator.ShortWindowSize;
+            var powerModels = AveragePowerCalculator.CalculateMovingAverages(remainingPoints, windowSize);
             Log.Debug($"Generated {powerModels.Count} power models");
             var intervals = new List<Interval>();
 
@@ -80,7 +82,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                     if (!IsIntervalContinuation(current, cvFollowThr, maRelThr))
                     {
                         unstableCount++;
-                        if (unstableCount >= IntervalTimes.MaxTimeBeforeEnd)
+                        if (unstableCount >= IntervalTimes.MaxTimeBeforeEnd * windowSize)
                             break;
                     }
                     else
@@ -100,41 +102,28 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
 
                 if (duration >= IntervalTimes.IntervalMinTime && duration <= IntervalTimes.IntervalMaxTime)
                 {
-                    Log.Debug($"Found interval: duration={duration}s, avgPower={totalPower / pointCount}W");
                     var newInterval = new Interval
                     {
                         StartTime = startTime,
                         EndTime = endTime,
                         TimeDiff = (int)duration,
                         AveragePower = totalPower / pointCount,
-                        Intervals = new List<Interval>() // Para futuros subintervalos
                     };
 
                     // Refinar los límites del intervalo
                     RefineIntervalLimits(newInterval, remainingPoints);
+                    Log.Debug($"Found interval: duration={newInterval.TimeDiff}s, avgPower={newInterval.AveragePower}W");
                     intervals.Add(newInterval);
                 }
             }
 
-            // Integrar intervalos
-            Log.Info($"Starting interval integration with {intervals.Count} intervals...");
-            IntegrateIntervals(intervals);
-            Log.Info($"Interval integration completed. Final interval count: {intervals.Count}");
-
-            // Refinar los límites de todos los intervalos integrados
-            Log.Info("Starting final refinement of all intervals...");
-            foreach (var interval in intervals)
-            {
-                RefineIntervalLimits(interval, remainingPoints);
-                if (interval.Intervals != null)
-                {
-                    foreach (var subInterval in interval.Intervals)
-                    {
-                        RefineIntervalLimits(subInterval, remainingPoints);
-                    }
-                }
-            }
-            Log.Info("Final refinement completed");
+            // // Refinar los límites de todos los intervalos integrados
+            // Log.Info("Starting final refinement of all intervals...");
+            // foreach (var interval in intervals)
+            // {
+            //     RefineIntervalLimits(interval, remainingPoints);
+            // }
+            // Log.Info("Final refinement completed");
 
             Log.Info($"Interval search completed. Found {intervals.Count} main intervals");
             return intervals;
@@ -183,36 +172,6 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
 
             return point.CoefficientOfVariation <= cvThreshold &&
                    point.DeviationFromReference <= deviationThreshold;
-        }
-
-        private static void IntegrateIntervals(List<Interval> intervals)
-        {
-            Log.Debug($"Starting interval integration with {intervals.Count} intervals...");
-
-            intervals.Sort((a, b) => b.TimeDiff.CompareTo(a.TimeDiff));
-
-            for (int i = 0; i < intervals.Count; i++)
-            {
-                var current = intervals[i];
-                for (int j = i + 1; j < intervals.Count; j++)
-                {
-                    var potential = intervals[j];
-                    if (IsSubInterval(current, potential))
-                    {
-                        current.Intervals ??= new List<Interval>();
-                        current.Intervals.Add(potential);
-                        intervals.RemoveAt(j);
-                        j--;
-                    }
-                }
-            }
-        }
-
-        private static bool IsSubInterval(Interval parent, Interval child)
-        {
-            return child.StartTime >= parent.StartTime &&
-                   child.EndTime <= parent.EndTime &&
-                   child != parent;
         }
 
         private static void RefineIntervalLimits(Interval interval, List<FitnessData> points)

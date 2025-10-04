@@ -4,6 +4,10 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
 {
     internal static class AveragePowerCalculator
     {
+        internal const int ShortWindowSize = 10;
+        internal const int MediumWindowSize = 30;
+        internal const int LongWindowSize = 60;
+
         internal static List<AveragePowerModel> CalculateMovingAverages(List<FitnessData> points, int windowSize)
         {
             if (points == null || !points.Any() || windowSize <= 0)
@@ -102,11 +106,12 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                 p.DeviationFromReference <= maxDeviationFromReference);
         }
 
+        // Not used, maybe delete
         internal static List<AveragePowerModel> CalculateWindowAverages(
             List<FitnessData> points,
-            int shortWindowSize = 10,  // 10 seconds
-            int mediumWindowSize = 30, // 30 seconds
-            int longWindowSize = 60)   // 60 seconds
+            int shortWindowSize = ShortWindowSize,  
+            int mediumWindowSize = MediumWindowSize, 
+            int longWindowSize = LongWindowSize)   
         {
             var shortAverages = CalculateMovingAverages(points, shortWindowSize);
             var mediumAverages = CalculateMovingAverages(points, mediumWindowSize);
