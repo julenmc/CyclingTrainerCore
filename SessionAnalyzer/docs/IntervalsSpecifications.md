@@ -12,12 +12,11 @@ A continuación, las principales limitaciones del servicio:
 3- No todo tiene que ser un intervalo. Habrá intervalos de tiempo en los que la potencia sea inestable (por ejemplo, un criterium en el que se arranca y se frena constantemente); estos intervalos se considerarán intervalos nulos.
 
 ## Process description
-El punto clave para la búsqueda de intervalos es el cálculo de la potencia media y la desviación estándar (STD) de los últimos X segundos en cada punto del recorrido (ver modelo [`AveragePowerModel`](../../SessionAnalyzer/SessionAnalyzer.Core/Services/Intervals/AveragePowerModel.cs)). Con estos datos se suaviza la potencia de la actividad durante el recorrido y facilita la búsqueda de intervalos. Estos datos se calcularán para 3 diferentes tiempos, de esta forma se facilitará encontrar intervalos de diferentes tiempos. Estos son los 4 tipos de intervalos que se han considerado:
+El punto clave para la búsqueda de intervalos es el cálculo de la potencia media y la desviación estándar (STD) de los últimos X segundos en cada punto del recorrido (ver modelo [`AveragePowerModel`](../../SessionAnalyzer/SessionAnalyzer.Core/Services/Intervals/AveragePowerModel.cs)). Con estos datos se suaviza la potencia de la actividad durante el recorrido y facilita la búsqueda de intervalos. Estos datos se calcularán para 3 diferentes tiempos, de esta forma se facilitará encontrar intervalos de diferentes tiempos:
 
-* **Short**: intervalos de una duración corta, tiempo mínimo: 30 segundos. Se calcularán con intervalos de tiempos de 10 segundos. Más adelante se conocerán como "S".
-* **Medium**: intervalos de una duración media, tiempo mínimo: 4 minutos. Se calcularán con intervalos de tiempos de 30 segundos. Más adelante se conocerán como "M".
-* **Long**: intervalos de una duración larga, tiempo mínimo: 10 minutos. Se calcularán con intervalos de tiempos de 60 segundos. Más adelante se conocerán como "L".
-* **Nule**: son aquellos intervalos de tiempo entre intervalos "conocidos" en los que no se puede llegar a encontran un intervalo constante debido a la irregularidad en la potencia. Más adelante se conocerán como "N".
+* **Short**: intervalos de una duración corta, tiempo mínimo: 30 segundos. Se calcularán con intervalos de tiempos de 10 segundos.
+* **Medium**: intervalos de una duración media, tiempo mínimo: 4 minutos. Se calcularán con intervalos de tiempos de 30 segundos.
+* **Long**: intervalos de una duración larga, tiempo mínimo: 10 minutos. Se calcularán con intervalos de tiempos de 60 segundos.
 
 > Nota: la agrupación por la duración de los intervalos no tiene unos límites máximos fijos, por lo tanto, un intervalo de 20 minutos podría detectarse en la fase de detección de intervalos cortos, aunque sería difícil en una actividad real. Esta agrupación solo sirve para facilitar el trabajo al algoritmo y definir mejor las pruebas que se vayan a hacer, la función que devuelva dichos intervalos no hará ninguna referencia a estos grupos. 
 
@@ -26,7 +25,7 @@ El punto clave para la búsqueda de intervalos es el cálculo de la potencia med
 Con esto, el proceso completo quedaría algo así:
 1. Ejecución del servicio de sprints, con la eliminación de estos de la potencia de la actividad. Además, se ejecutará un servicio que elimine los 0W aislados (dejar de pedalear durante un par de segundos).
 2. Cálculo de potencias medias y desviaciones de la actividad.
-3. Búsqueda de intervalos usando los datos calculados.
+3. Búsqueda de intervalos usando los datos calculados para cada una de las agrupaciones de tiempos.
 4. Limpieza final e integración de intervalos dentro de otros.
 
 ### Intervals search
