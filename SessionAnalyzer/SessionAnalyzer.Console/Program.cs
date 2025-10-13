@@ -1,4 +1,4 @@
-﻿using CyclingTrainer.Core.Models;
+﻿using CoreModels = CyclingTrainer.Core.Models;
 using CyclingTrainer.SessionReader.Core.Repository;
 using CyclingTrainer.SessionAnalyzer.Core.Services;
 using CyclingTrainer.SessionAnalyzer.Core.Services.Intervals;
@@ -15,8 +15,17 @@ namespace CyclingTrainer.SessionAnalyzer.Console
             Logger.Info("Start Session Analyzer Test");
 
             SessionRepository.ReadRoute(@"Resources/19622171318_ACTIVITY.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
-            // Session session = DataAnalyzeService.AnalyzeData();
-            List<Models.Interval> intervals = IntervalsService.Search(SessionRepository.GetFitnessData(), 500);
+                                                                                // Session session = DataAnalyzeService.AnalyzeData();
+            List<CoreModels.Zone> powerZones = new List<CoreModels.Zone>{
+            new CoreModels.Zone { Id = 1, LowLimit = 0, HighLimit = 129},
+            new CoreModels.Zone { Id = 2, LowLimit = 130, HighLimit = 179},
+            new CoreModels.Zone { Id = 3, LowLimit = 180, HighLimit = 214},
+            new CoreModels.Zone { Id = 4, LowLimit = 215, HighLimit = 249},
+            new CoreModels.Zone { Id = 5, LowLimit = 250, HighLimit = 289},
+            new CoreModels.Zone { Id = 6, LowLimit = 290, HighLimit = 359},
+            new CoreModels.Zone { Id = 7, LowLimit = 360, HighLimit = 2000}
+        };
+            List<Models.Interval> intervals = IntervalsService.Search(SessionRepository.GetFitnessData(), powerZones);
 
             // Logger.Info($"Route {session.Name} lenght: {session.Distance}m. Elevation: {session.HeightDiff}m");
             // Logger.Info($"Analysis complete. AvrPower = {session.AnalyzedData.AveragePower}W. AvrHR = {session.AnalyzedData.AverageHr}bpm. AvrCadence = {session.AnalyzedData.AverageCadence}rpm");
