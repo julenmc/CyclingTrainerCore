@@ -33,7 +33,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 fitnessTestSections.Add(new FitnessSection { Time = 1, Power = rnd.Next(ShortMinValue, ShortMaxValue), HearRate = 90, Cadence = 80 });
             }
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
+            IntervalsService service = new IntervalsService(PowerZones);
+            List<Interval> intervals = service.Search(fitnessData);
             Assert.AreEqual(1, intervals.Count);
             float expectedTime = ShortDefaultTime;
             Assert.AreEqual(expectedTime, intervals.First().TimeDiff, expectedTime * ShortAcpDelta);
@@ -49,7 +50,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 fitnessTestSections.Add(new FitnessSection { Time = 1, Power = rnd.Next(MediumMinValue, MediumMaxValue), HearRate = 90, Cadence = 80 });
             }
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
+            IntervalsService service = new IntervalsService(PowerZones);
+            List<Interval> intervals = service.Search(fitnessData);
             Assert.AreEqual(1, intervals.Count);
             float expectedTime = MediumDefaultTime;
             Assert.AreEqual(expectedTime, intervals.First().TimeDiff, expectedTime * MediumAcpDelta);
@@ -65,7 +67,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 fitnessTestSections.Add(new FitnessSection { Time = 1, Power = rnd.Next(LongMinValue, LongMaxValue), HearRate = 90, Cadence = 80 });
             }
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
+            IntervalsService service = new IntervalsService(PowerZones);
+            List<Interval> intervals = service.Search(fitnessData);
             Assert.AreEqual(1, intervals.Count);
             float expectedTime = LongDefaultTime;
             Assert.AreEqual(expectedTime, intervals.First().TimeDiff, expectedTime * LongAcpDelta);
@@ -82,7 +85,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = 200, Power = 300, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
+            IntervalsService service = new IntervalsService(PowerZones);
+            List<Interval> intervals = service.Search(fitnessData);
             Assert.AreEqual(1, intervals.Count);
             Assert.AreEqual(300, intervals.First().AveragePower);
             Assert.AreEqual(410, intervals.First().TimeDiff);
@@ -102,7 +106,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 fitnessTestSections.Add(new FitnessSection { Time = 1, Power = rnd.Next(ShortMinValue, ShortMaxValue), HearRate = 90, Cadence = 80 });
             }
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
+            IntervalsService service = new IntervalsService(PowerZones);
+            List<Interval> intervals = service.Search(fitnessData);
             Assert.AreEqual(1, intervals.Count);
             float expectedTime = ShortDefaultTime + 1;
             Assert.AreEqual(expectedTime, intervals.First().TimeDiff, expectedTime * ShortAcpDelta);
@@ -126,7 +131,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 fitnessTestSections.Add(new FitnessSection { Time = 1, Power = rnd.Next(NuleMinValue, NuleMaxValue), HearRate = 90, Cadence = 80 });
             }
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
+            IntervalsService service = new IntervalsService(PowerZones);
+            List<Interval> intervals = service.Search(fitnessData);
             Assert.AreEqual(1, intervals.Count);
             float expectedTime = ShortDefaultTime;
             Assert.AreEqual(expectedTime, intervals.First().TimeDiff, expectedTime * ShortAcpDelta);
@@ -154,7 +160,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             }
 
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
+            IntervalsService service = new IntervalsService(PowerZones);
+            List<Interval> intervals = service.Search(fitnessData);
             Assert.AreEqual(1, intervals.Count);
             float expectedTime = MediumDefaultTime + ShortDefaultTime * 2;
             Assert.AreEqual(expectedTime, intervals[0].TimeDiff, expectedTime * LongAcpDelta);
@@ -187,7 +194,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 fitnessTestSections.Add(new FitnessSection { Time = 1, Power = rnd.Next(MediumMinValue, MediumMaxValue), HearRate = 90, Cadence = 80 });
             }
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
+            IntervalsService service = new IntervalsService(PowerZones);
+            List<Interval> intervals = service.Search(fitnessData);
             Assert.AreEqual(1, intervals.Count);
             float expectedTime = MediumDefaultTime * 2 + LongDefaultTime;
             Assert.AreEqual(expectedTime, intervals.First().TimeDiff, expectedTime * LongAcpDelta);
@@ -220,7 +228,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             }
 
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
+            IntervalsService service = new IntervalsService(PowerZones);
+            List<Interval> intervals = service.Search(fitnessData);
             Assert.AreEqual(3, intervals.Count);
             Assert.AreEqual(ShortDefaultTime, intervals[0].TimeDiff, ShortDefaultTime * ShortAcpDelta);
             Assert.IsTrue(intervals[0].AveragePower < ShortMaxValue && intervals[0].AveragePower > ShortMinValue);

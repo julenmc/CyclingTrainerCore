@@ -18,15 +18,16 @@ namespace CyclingTrainer.SessionAnalyzer.Console
             SessionRepository.ReadRoute(@"Resources/19622171318_ACTIVITY.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
                                                                                 // Session session = DataAnalyzeService.AnalyzeData();
             List<CoreModels.Zone> powerZones = new List<CoreModels.Zone>{
-            new CoreModels.Zone { Id = 1, LowLimit = 0, HighLimit = 129},
-            new CoreModels.Zone { Id = 2, LowLimit = 130, HighLimit = 189},
-            new CoreModels.Zone { Id = 3, LowLimit = 190, HighLimit = 229},
-            new CoreModels.Zone { Id = 4, LowLimit = 230, HighLimit = 264},
-            new CoreModels.Zone { Id = 5, LowLimit = 265, HighLimit = 309},
-            new CoreModels.Zone { Id = 6, LowLimit = 310, HighLimit = 379},
-            new CoreModels.Zone { Id = 7, LowLimit = 380, HighLimit = 2000}
-        };
-            List<Models.Interval> intervals = IntervalsService.Search(SessionRepository.GetFitnessData(), powerZones);
+                new CoreModels.Zone { Id = 1, LowLimit = 0, HighLimit = 129},
+                new CoreModels.Zone { Id = 2, LowLimit = 130, HighLimit = 189},
+                new CoreModels.Zone { Id = 3, LowLimit = 190, HighLimit = 229},
+                new CoreModels.Zone { Id = 4, LowLimit = 230, HighLimit = 264},
+                new CoreModels.Zone { Id = 5, LowLimit = 265, HighLimit = 309},
+                new CoreModels.Zone { Id = 6, LowLimit = 310, HighLimit = 379},
+                new CoreModels.Zone { Id = 7, LowLimit = 380, HighLimit = 2000}
+            };
+            IntervalsService service = new IntervalsService(powerZones);
+            List<Models.Interval> intervals = service.Search(SessionRepository.GetFitnessData());
             LogIntervals(intervals);
 
             // IntervalsService.DetectionThresholds thr = new IntervalsService.DetectionThresholds

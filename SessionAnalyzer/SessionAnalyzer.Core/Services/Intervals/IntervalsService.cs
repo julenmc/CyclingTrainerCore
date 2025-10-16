@@ -7,14 +7,20 @@ using CyclingTrainer.SessionAnalyzer.Core.Enums;
 
 namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
 {
-    public static class IntervalsService
+    public class IntervalsService
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static List<Interval> Search(
-            List<FitnessData> activityPoints,
-            List<CoreModels.Zone> powerZones,
-            Thresholds? thresholds = null)
+        private List<CoreModels.Zone> _powerZones;
+        private Thresholds? _thresholds;
+
+        public IntervalsService(List<CoreModels.Zone> powerZones, Thresholds? thresholds = null)
+        {
+            _powerZones = powerZones;
+            _thresholds = thresholds;
+        }
+
+        public List<Interval> Search(List<FitnessData> activityPoints)
         {
             Log.Info("Starting intervals search...");
             if (activityPoints == null || !activityPoints.Any())
@@ -28,7 +34,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
             IntervalRepository.SetFitnessData(activityPoints);
 
             // Detectar y eliminar sprints primero
-            CoreModels.Zone? sprint = powerZones.Find(x => x.Id == 7);
+            CoreModels.Zone? sprint = _powerZones.Find(x => x.Id == 7);
             if (sprint == null)
             {
                 Log.Warn("No sprint power zone found");
@@ -40,55 +46,77 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
             SprintService.AnalyzeActivity(activityPoints);
             Log.Info("Sprint detection completed");
 
+            // Short intervals
             List<Interval> intervals = new List<Interval>();
             Log.Info($"Starting short interval search...");
             CoreModels.Zone zone = new CoreModels.Zone
             {
-                HighLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short] + 1)?.HighLimit ?? 0,
-                LowLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short])?.LowLimit ?? 0
+                HighLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short] + 1)?.HighLimit ?? 0,
+                LowLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short])?.LowLimit ?? 0
             };
-            List<Interval> tmp = Search(IntervalSearchValues.ShortIntervals.Default, thresholds, AveragePowerCalculator.ShortWindowSize,
+            List<Interval> tmp = Search(IntervalSearchValues.ShortIntervals.Default, AveragePowerCalculator.ShortWindowSize,
                                         IntervalTimes.IntervalMinTimes[IntervalGroups.Short], zone);
             Log.Info($"Short intervals search done. {tmp.Count} intervals found");
             intervals.AddRange(tmp);
 
+            // Medium intervals
             Log.Info($"Starting medium interval search...");
             zone = new CoreModels.Zone
             {
-                HighLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short])?.HighLimit ?? 0,
-                LowLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium])?.LowLimit ?? 0
+                HighLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short])?.HighLimit ?? 0,
+                LowLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium])?.LowLimit ?? 0
             };
-            tmp = Search(IntervalSearchValues.MediumIntervals.Default, thresholds, AveragePowerCalculator.MediumWindowSize,
+            tmp = Search(IntervalSearchValues.MediumIntervals.Default, AveragePowerCalculator.MediumWindowSize,
                          IntervalTimes.IntervalMinTimes[IntervalGroups.Medium], zone);
-            Log.Info($"Medium intervals search done. {tmp.Count} intervals found");
+
+            for (int i = 0; i < tmp.Count; i++)
+            {
+                if (IntervalAlreadyExists(tmp[i], intervals))
+                {
+                    Log.Debug($"Interval {tmp[i].StartTime.TimeOfDay}-{tmp[i].EndTime.TimeOfDay} at {tmp[i].AveragePower} already exists");
+                    tmp.RemoveAt(i);
+                }
+            }
+            // Delete existing intervals
+            Log.Info($"Medium intervals search done. {tmp.Count} new intervals found");
             intervals.AddRange(tmp);
 
+            // Long intervals
             Log.Info($"Starting long interval search...");
             zone = new CoreModels.Zone
             {
-                HighLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium])?.HighLimit ?? 0,
-                LowLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Long])?.LowLimit ?? 0
+                HighLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium])?.HighLimit ?? 0,
+                LowLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Long])?.LowLimit ?? 0
             };
-            tmp = Search(IntervalSearchValues.LongIntervals.Default, thresholds, AveragePowerCalculator.LongWindowSize,
+            tmp = Search(IntervalSearchValues.LongIntervals.Default, AveragePowerCalculator.LongWindowSize,
                          IntervalTimes.IntervalMinTimes[IntervalGroups.Long], zone);
-            Log.Info($"Long intervals search done. {tmp.Count} intervals found");
+            // Delete existing intervals
+            for (int i = 0; i < tmp.Count; i++)
+            {
+                if (IntervalAlreadyExists(tmp[i], intervals))
+                {
+                    Log.Debug($"Interval {tmp[i].StartTime.TimeOfDay}-{tmp[i].StartTime.TimeOfDay} at {tmp[i].AveragePower} already exists");
+                    tmp.RemoveAt(i);
+                }
+            }
+            Log.Info($"Long intervals search done. {tmp.Count} new intervals found");
             intervals.AddRange(tmp);
 
             // Integrar intervalos
-            IntegrateIntervals(intervals, powerZones);
+            IntegrateIntervals(intervals);
 
             Log.Info($"Interval search completed. Found {intervals.Count} main intervals");
             intervals.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
             return intervals;
         }
 
-        private static List<Interval> Search(Thresholds defaultThresholds, Thresholds? thresholds, int windowSize, int minTime, CoreModels.Zone powerZone)
+        private List<Interval> Search(Thresholds defaultThresholds, int windowSize, int minTime, CoreModels.Zone powerZone)
         {
             // Inicializar con valores por defecto si no se proporcionan
-            float cvStartThr = thresholds != null ? thresholds.CvStart : defaultThresholds.CvStart;
-            float cvFollowThr = thresholds != null ? thresholds.CvFollow : defaultThresholds.CvFollow;
-            float rangeThr = thresholds != null ? thresholds.Range : defaultThresholds.Range;
-            float maRelThr = thresholds != null ? thresholds.MaRel : defaultThresholds.MaRel;
+            float cvStartThr = _thresholds != null ? _thresholds.CvStart : defaultThresholds.CvStart;
+            float cvFollowThr = _thresholds != null ? _thresholds.CvFollow : defaultThresholds.CvFollow;
+            float rangeThr = _thresholds != null ? _thresholds.Range : defaultThresholds.Range;
+            float maRelThr = _thresholds != null ? _thresholds.MaRel : defaultThresholds.MaRel;
 
             Log.Debug($"Using thresholds: cvStart={cvStartThr}, cvFollow={cvFollowThr}, range={rangeThr}, maRel={maRelThr}. minPower={powerZone.LowLimit}W, maxPower={powerZone.HighLimit}W");
 
@@ -163,18 +191,18 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                 RefineIntervalLimits(newInterval, remainingPoints, maRelThr, windowSize);
                 Log.Debug($"Found interval: Time={newInterval.StartTime.TimeOfDay}-{newInterval.EndTime.TimeOfDay} ({newInterval.TimeDiff}s), avgPower={newInterval.AveragePower}W");
 
-                if (IsConsideredAnInterval(newInterval, minTime, powerZone.LowLimit))
+                if (IsConsideredAnInterval(newInterval))
                 {
                     Log.Info($"Saved interval: Time={newInterval.StartTime.TimeOfDay}-{newInterval.EndTime.TimeOfDay} ({newInterval.TimeDiff}s), avgPower={newInterval.AveragePower}W");
                     intervals.Add(newInterval);
                 }
-                else Log.Debug($"Interval not saved. Min time: {minTime} s. Min power: {powerZone.LowLimit} W");
+                else Log.Debug($"Interval not saved");
             }
 
             return intervals;
         }
 
-        private static bool IsIntervalStart(AveragePowerModel point, float cvThreshold, float rangeThreshold, float maxAvgPower)
+        private bool IsIntervalStart(AveragePowerModel point, float cvThreshold, float rangeThreshold, float maxAvgPower)
         {
             //Log.Debug($"Checking interval start at {point.PointDate}: CV={point.CoefficientOfVariation}, Range={point.RangePercent}");
 
@@ -183,7 +211,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                    point.AvrgPower <= maxAvgPower;
         }
 
-        private static bool IsIntervalContinuation(AveragePowerModel point, float cvThreshold, float deviationThreshold)
+        private bool IsIntervalContinuation(AveragePowerModel point, float cvThreshold, float deviationThreshold)
         {
             //Log.Debug($"Checking interval continuation at {point.PointDate}: CV={point.CoefficientOfVariation}, Deviation={point.DeviationFromReference}");
 
@@ -191,7 +219,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                    point.DeviationFromReference <= deviationThreshold;
         }
 
-        private static void RefineIntervalLimits(Interval interval, List<FitnessData> points, float maRelThr, int windowSize)
+        private void RefineIntervalLimits(Interval interval, List<FitnessData> points, float maRelThr, int windowSize)
         {
             // Log.Debug($"Refining interval limits for interval at {interval.StartTime}");
 
@@ -294,16 +322,22 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
             }
         }
 
-        private static bool IsConsideredAnInterval(Interval interval, int minTime, int lowLimit)
-        {
-            try
+        private bool IsConsideredAnInterval(Interval interval) =>
+            interval.TimeDiff switch
             {
-                return interval.TimeDiff >= minTime && interval.AveragePower >= lowLimit;
-            }
-            catch { return false; }
-        }
+                >= IntervalTimes.LongIntervalMinTime =>
+                    interval.AveragePower > (_powerZones
+                        .Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Long])?.LowLimit ?? 0),
+                >= IntervalTimes.MediumIntervalMinTime =>
+                    interval.AveragePower > (_powerZones
+                        .Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium])?.LowLimit ?? 0),
+                >= IntervalTimes.IntervalMinTime =>
+                    interval.AveragePower > (_powerZones
+                        .Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short])?.LowLimit ?? 0),
+                _ => false
+            };
 
-        private static void IntegrateIntervals(List<Interval> intervals, List<CoreModels.Zone> powerZones)
+        private void IntegrateIntervals(List<Interval> intervals)
         {
             Log.Debug($"Starting interval integration with {intervals.Count} intervals...");
 
@@ -317,12 +351,11 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                 {
                     var potential = intervals[j];
 
-                    var result = CheckIntervalsIntegration(current, ref potential, powerZones);
-                    if (result.Item1)
+                    var result = CheckIntervalsIntegration(current, ref potential);
+                    if (result)
                     {
                         intervals.RemoveAt(j);
                         j--;
-                        Log.Debug($"{result.Item2} between: interval starting at {potential.StartTime.TimeOfDay} with {potential.AveragePower} W in {potential.TimeDiff} s and the interval starting at {current.StartTime.TimeOfDay} with {current.AveragePower} W in {current.TimeDiff} s");
                     }
                 }
             }
@@ -333,12 +366,12 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
             {
                 if (interval.Intervals != null && interval.Intervals.Count != 0)
                 {
-                    IntegrateIntervals(interval.Intervals, powerZones);
+                    IntegrateIntervals(interval.Intervals);
                 }
             }
         }
 
-        private static (bool, string) CheckIntervalsIntegration(Interval parent, ref Interval child, List<CoreModels.Zone> powerZones)
+        private bool CheckIntervalsIntegration(Interval parent, ref Interval child)
         {
             bool delete = false;
             string info = "";
@@ -355,43 +388,79 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                     info = "SubInterval";
                     parent.Intervals?.Add(child);
                 }
+                Log.Debug($"{info} between: child interval {child.StartTime.TimeOfDay}-{child.EndTime.TimeOfDay} at {child.AveragePower} W and parent interval {parent.StartTime.TimeOfDay}-{parent.EndTime.TimeOfDay} at {parent.AveragePower} W");
             }
             else if (DoIntervalsCollide(parent, child))
             {
-                GenerateNewIntervalFromCollition(parent, ref child);    // TODO: divide by two the interval
+                Log.Debug($"Collision between: child interval {child.StartTime.TimeOfDay}-{child.EndTime.TimeOfDay} at {child.AveragePower} W and parent interval {parent.StartTime.TimeOfDay}-{parent.EndTime.TimeOfDay} at {parent.AveragePower} W");
 
-                IntervalGroups group = GetGroup(child);
-                if (group == IntervalGroups.Nule)
+                if (child.StartTime < parent.StartTime)     // Collision at start
                 {
-                    delete = true;
-                    info = "Collision";
-                    return (delete, info);
+                    Interval oldChild = new Interval
+                    {
+                        StartTime = child.StartTime,
+                        EndTime = child.EndTime
+                    };
+                    GenerateNewIntervalBeforeCollitionInStart(parent, ref child);  // Pass reference before collision cuz might still be an interval
+
+                    if (!IsConsideredAnInterval(child))
+                    {
+                        delete = true;
+                        info = "Collision";
+                        Log.Debug($"Interval will not be saved after modification");
+                    }
+                    else
+                    {
+                        Log.Debug($"Interval will be saved after modification");
+                    }
+
+                    Interval newChild = GenerateNewIntervalAfterCollitionInStart(parent, oldChild);       // After collision should be a new interval, no reference
+                    if (IsConsideredAnInterval(newChild))   // TODO: check if child's power is lower than parent's
+                    {
+                        parent.Intervals?.Add(newChild);
+                        Log.Debug($"New subInterval added: startTime {child.StartTime.TimeOfDay} with {child.AveragePower} W in {child.TimeDiff} s");
+                    }
                 }
-                int minPower = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[group])?.LowLimit ?? 0;
-                if (!IsConsideredAnInterval(child, IntervalTimes.IntervalMinTimes[group], minPower))
+                else        // Collision at end
                 {
-                    delete = true;
-                    info = "Collision";
-                }
-                else
-                {
-                    Log.Debug($"Interval modified to: startTime {child.StartTime} with {child.AveragePower} W in {child.TimeDiff} s");
+                    Interval oldChild = new Interval
+                    {
+                        StartTime = child.StartTime,
+                        EndTime = child.EndTime
+                    };
+                    Interval newChild = GenerateNewIntervalBeforeCollitionInEnd(parent, oldChild);  // Before collision should be a new interval, no reference
+
+                    if (IsConsideredAnInterval(newChild))   // TODO: check if child's power is lower than parent's
+                    {
+                        parent.Intervals?.Add(newChild);
+                        Log.Debug($"New subInterval added: startTime {child.StartTime.TimeOfDay} with {child.AveragePower} W in {child.TimeDiff} s");
+                    }
+
+                    GenerateNewIntervalAfterCollitionInEnd(parent, ref child);       // Pass reference after collision cuz might still be an interval
+                    if (!IsConsideredAnInterval(child))
+                    {
+                        delete = true;
+                        info = "Collision";
+                        Log.Debug($"Interval will not be saved after modification");
+                    }
+                    else
+                    {
+                        Log.Debug($"Interval will be saved after modification");
+                    }
                 }
             }
 
-            return (delete, info);
+            return delete;
         }
 
-        private static void GenerateNewIntervalFromCollition(Interval parent, ref Interval child)
+        private static void GenerateNewIntervalBeforeCollitionInStart(Interval parent, ref Interval child)
         {
             var newEndTime = parent.StartTime.AddSeconds(-1);
             var startTime = child.StartTime;  // Guardar en variable local para usar en lambda
-            
-            Log.Debug($"Before adjustsment: child interval at {child.StartTime.TimeOfDay}-{child.EndTime.TimeOfDay} ({child.TimeDiff}s), avgPower={child.AveragePower}W.");
 
             var remainingPoints = IntervalRepository.GetRemainingFitnessData();
             var points = remainingPoints
-                .Where(p => 
+                .Where(p =>
                 {
                     var timestamp = p.Timestamp.GetDateTime();
                     return timestamp >= startTime && timestamp <= newEndTime;
@@ -407,38 +476,126 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
             child.EndTime = newEndTime;
             child.TimeDiff = (int)(newEndTime - startTime).TotalSeconds + 1;
             child.AveragePower = (float)points.Average(p => p.Stats.Power ?? 0);
-            
-            Log.Debug($"Collision adjusted: child interval now ends at {newEndTime.TimeOfDay}, new duration={child.TimeDiff}s, new avgPower={child.AveragePower}W.");
+
+            Log.Debug($"Collision adjusted: interval now ends at {newEndTime.TimeOfDay}, new duration={child.TimeDiff}s, new avgPower={child.AveragePower}W.");
+            return;
         }
-        
-        private static IntervalGroups GetGroup(Interval interval) =>
-            interval.TimeDiff switch
-            {
-                < IntervalTimes.IntervalMinTime => IntervalGroups.Nule,
-                < IntervalTimes.MediumIntervalMinTime => IntervalGroups.Short,
-                < IntervalTimes.LongIntervalMinTime => IntervalGroups.Medium,
-                _ => IntervalGroups.Long
+
+        private static Interval GenerateNewIntervalAfterCollitionInStart(Interval parent, Interval child)
+        {
+            var endTime = child.EndTime;         // Save in variable to use in lambda
+            var newStartTime = parent.StartTime;
+
+            Interval ret = new Interval{
+                StartTime = child.StartTime,
+                EndTime = child.EndTime
             };
 
+            var remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            var points = remainingPoints
+                .Where(p =>
+                {
+                    var timestamp = p.Timestamp.GetDateTime();
+                    return timestamp >= newStartTime && timestamp <= endTime;
+                })
+                .ToList();
 
+            if (!points.Any())
+            {
+                ret.TimeDiff = 0;
+                return ret;
+            }
+
+            ret.StartTime = newStartTime;
+            ret.TimeDiff = (int)(endTime - newStartTime).TotalSeconds + 1;
+            ret.AveragePower = (float)points.Average(p => p.Stats.Power ?? 0);
+
+            Log.Debug($"New possible child interval starts at {newStartTime.TimeOfDay}, new duration={ret.TimeDiff}s, new avgPower={ret.AveragePower}W.");
+            return ret;
+        }
+
+        private static Interval GenerateNewIntervalBeforeCollitionInEnd(Interval parent, Interval child)
+        {
+            var newEndTime = parent.EndTime;
+            var startTime = child.StartTime;  // Guardar en variable local para usar en lambda
+
+            Interval ret = new Interval{
+                StartTime = child.StartTime,
+                EndTime = child.EndTime
+            };
+            var remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            var points = remainingPoints
+                .Where(p =>
+                {
+                    var timestamp = p.Timestamp.GetDateTime();
+                    return timestamp >= startTime && timestamp <= newEndTime;
+                })
+                .ToList();
+
+            if (!points.Any())
+            {
+                ret.TimeDiff = 0;
+                return ret;
+            }
+
+            ret.EndTime = newEndTime;
+            ret.TimeDiff = (int)(newEndTime - startTime).TotalSeconds + 1;
+            ret.AveragePower = (float)points.Average(p => p.Stats.Power ?? 0);
+
+            Log.Debug($"New possible child interval starts at {startTime.TimeOfDay}, new duration={ret.TimeDiff}s, new avgPower={ret.AveragePower}W.");
+            return ret;
+        }
+
+        private static void GenerateNewIntervalAfterCollitionInEnd(Interval parent, ref Interval child)
+        {
+            var endTime = child.EndTime;         // Save in variable to use in lambda
+            var newStartTime = parent.EndTime.AddSeconds(1);
+
+            Interval ret = child;
+
+            var remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            var points = remainingPoints
+                .Where(p =>
+                {
+                    var timestamp = p.Timestamp.GetDateTime();
+                    return timestamp >= newStartTime && timestamp <= endTime;
+                })
+                .ToList();
+
+            if (!points.Any())
+            {
+                ret.TimeDiff = 0;
+                return;
+            }
+
+            ret.StartTime = newStartTime;
+            ret.TimeDiff = (int)(endTime - newStartTime).TotalSeconds + 1;
+            ret.AveragePower = (float)points.Average(p => p.Stats.Power ?? 0);
+
+            Log.Debug($"Collision adjusted: interval now starts at {newStartTime.TimeOfDay}, new duration={child.TimeDiff}s, new avgPower={child.AveragePower}W.");
+        }
 
         private static bool IsSubInterval(Interval parent, Interval child)
         {
-            int timeExpand = parent.TimeDiff / 20;  // 5% time expansion
-            return child.StartTime >= parent.StartTime.AddSeconds(-timeExpand) &&
-                   child.EndTime <= parent.EndTime.AddSeconds(timeExpand) &&
+            return child.StartTime >= parent.StartTime &&
+                   child.EndTime <= parent.EndTime &&
                    child != parent;
         }
 
-        private static bool IsSameInterval(Interval parent, Interval child)     // Always called after IsSubInterval
+        private static bool IsSameInterval(Interval parent, Interval child)
         {
-            return (parent.StartTime == child.StartTime && parent.EndTime == child.EndTime) ||
-                    ((float)child.TimeDiff / (float)parent.TimeDiff >= 0.8f);      // Childs time diff has to be at max 80% of parents, this solves small diffs in the search algorithm
+            return (parent.StartTime == child.StartTime && parent.EndTime == child.EndTime);
         }
 
         private static bool DoIntervalsCollide(Interval parent, Interval child)
         {
-            return (child.StartTime < parent.StartTime && child.EndTime > parent.StartTime);
+            return (child.StartTime < parent.StartTime && child.EndTime > parent.StartTime) ||
+                   (child.StartTime < parent.EndTime && child.EndTime > parent.EndTime);
+        }
+
+        private static bool IntervalAlreadyExists(Interval intervalToCheck, List<Interval> intervals)
+        {
+            return intervals.Any(x => IsSameInterval(x, intervalToCheck));
         }
     }
 }
