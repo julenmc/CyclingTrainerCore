@@ -1,5 +1,5 @@
-using CyclingTrainer.SessionAnalyzer.Core.Models;
-using CyclingTrainer.SessionAnalyzer.Core.Services.Intervals;
+using CyclingTrainer.SessionAnalyzer.Models;
+using CyclingTrainer.SessionAnalyzer.Services.Intervals;
 using CyclingTrainer.SessionAnalyzer.Test.Models;
 using CyclingTrainer.SessionReader.Core.Models;
 

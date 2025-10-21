@@ -1,8 +1,8 @@
 using CoreModels = CyclingTrainer.Core.Models;
 using CyclingTrainer.SessionReader.Core.Models;
 using CyclingTrainer.SessionAnalyzer.Test.Models;
-using CyclingTrainer.SessionAnalyzer.Core.Models;
-using CyclingTrainer.SessionAnalyzer.Core.Services.Intervals;
+using CyclingTrainer.SessionAnalyzer.Models;
+using CyclingTrainer.SessionAnalyzer.Services.Intervals;
 using static CyclingTrainer.SessionAnalyzer.Test.Intervals.IntervalsConstants;
 
 namespace CyclingTrainer.SessionAnalyzer.Test.Intervals

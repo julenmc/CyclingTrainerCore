@@ -7,7 +7,7 @@ using CyclingTrainer.TrainingDatabase.Core.Repository;
 using static CyclingTrainer.Core.Constants.PowerCurveConstants;
 using Dynastream.Fit;
 
-namespace CyclingTrainer.SessionAnalyzer.Core.Services
+namespace CyclingTrainer.SessionAnalyzer.Services
 {
     public static class DataAnalyzeService
     {

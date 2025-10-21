@@ -1,6 +1,6 @@
 using CyclingTrainer.SessionReader.Core.Models;
 
-namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
+namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
     internal static class AveragePowerCalculator
     {

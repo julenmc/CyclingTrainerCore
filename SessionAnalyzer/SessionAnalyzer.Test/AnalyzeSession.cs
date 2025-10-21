@@ -1,6 +1,6 @@
 ﻿using CyclingTrainer.Core.Models;
 using CyclingTrainer.Core.Constants;
-using CyclingTrainer.SessionAnalyzer.Core.Services;
+using CyclingTrainer.SessionAnalyzer.Services;
 using CyclingTrainer.SessionAnalyzer.Test.Models;
 using CyclingTrainer.SessionReader.Core.Models;
 

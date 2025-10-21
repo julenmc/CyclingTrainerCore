@@ -1,8 +1,8 @@
-using CyclingTrainer.SessionAnalyzer.Core.Models;
+using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionReader.Core.Models;
 using NLog;
 
-namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
+namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
     internal static class SprintService
     {

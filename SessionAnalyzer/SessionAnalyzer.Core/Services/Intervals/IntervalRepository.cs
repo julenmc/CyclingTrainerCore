@@ -1,7 +1,7 @@
-using CyclingTrainer.SessionAnalyzer.Core.Models;
+using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionReader.Core.Models;
 
-namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
+namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
     internal static class IntervalRepository
     {

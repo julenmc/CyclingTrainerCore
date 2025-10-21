@@ -1,11 +1,11 @@
 using CoreModels = CyclingTrainer.Core.Models;
-using CyclingTrainer.SessionAnalyzer.Core.Constants;
-using CyclingTrainer.SessionAnalyzer.Core.Models;
+using CyclingTrainer.SessionAnalyzer.Constants;
+using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionReader.Core.Models;
 using NLog;
-using CyclingTrainer.SessionAnalyzer.Core.Enums;
+using CyclingTrainer.SessionAnalyzer.Enums;
 
-namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
+namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
     public class IntervalsService
     {
@@ -51,11 +51,10 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
             Log.Info($"Starting short interval search...");
             CoreModels.Zone zone = new CoreModels.Zone
             {
-                HighLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short] + 1)?.HighLimit ?? 0,
+                HighLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short] + 2)?.HighLimit ?? 0,
                 LowLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short])?.LowLimit ?? 0
             };
-            List<Interval> tmp = Search(IntervalSearchValues.ShortIntervals.Default, AveragePowerCalculator.ShortWindowSize,
-                                        IntervalTimes.IntervalMinTimes[IntervalGroups.Short], zone);
+            List<Interval> tmp = Search(IntervalSearchValues.ShortIntervals.Default, AveragePowerCalculator.ShortWindowSize, zone);
             Log.Info($"Short intervals search done. {tmp.Count} intervals found");
             intervals.AddRange(tmp);
 
@@ -63,11 +62,10 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
             Log.Info($"Starting medium interval search...");
             zone = new CoreModels.Zone
             {
-                HighLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short])?.HighLimit ?? 0,
+                HighLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium] + 2)?.HighLimit ?? 0,
                 LowLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium])?.LowLimit ?? 0
             };
-            tmp = Search(IntervalSearchValues.MediumIntervals.Default, AveragePowerCalculator.MediumWindowSize,
-                         IntervalTimes.IntervalMinTimes[IntervalGroups.Medium], zone);
+            tmp = Search(IntervalSearchValues.MediumIntervals.Default, AveragePowerCalculator.MediumWindowSize, zone);
 
             for (int i = 0; i < tmp.Count; i++)
             {
@@ -85,11 +83,10 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
             Log.Info($"Starting long interval search...");
             zone = new CoreModels.Zone
             {
-                HighLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium])?.HighLimit ?? 0,
+                HighLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Long] + 2)?.HighLimit ?? 0,
                 LowLimit = _powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Long])?.LowLimit ?? 0
             };
-            tmp = Search(IntervalSearchValues.LongIntervals.Default, AveragePowerCalculator.LongWindowSize,
-                         IntervalTimes.IntervalMinTimes[IntervalGroups.Long], zone);
+            tmp = Search(IntervalSearchValues.LongIntervals.Default, AveragePowerCalculator.LongWindowSize, zone);
             // Delete existing intervals
             for (int i = 0; i < tmp.Count; i++)
             {
@@ -110,7 +107,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
             return intervals;
         }
 
-        private List<Interval> Search(Thresholds defaultThresholds, int windowSize, int minTime, CoreModels.Zone powerZone)
+        private List<Interval> Search(Thresholds defaultThresholds, int windowSize, CoreModels.Zone powerZone)
         {
             // Inicializar con valores por defecto si no se proporcionan
             float cvStartThr = _thresholds != null ? _thresholds.CvStart : defaultThresholds.CvStart;
@@ -145,7 +142,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                 float referenceAverage = powerModels[i].AvrgPower;
                 int totalPower = 0;
                 int pointCount = 0;
-                Log.Debug($"New interval might start at: startDate={startTime.TimeOfDay}");
+                Log.Debug($"New interval might start at: startDate={startTime.TimeOfDay}: CV={powerModels[i].CoefficientOfVariation}. Range={powerModels[i].RangePercent}");
 
                 // Seguir el intervalo mientras se mantenga estable
                 int unstableCount = 0;
@@ -157,8 +154,8 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
 
                     if (!IsIntervalContinuation(current, cvFollowThr, maRelThr))
                     {
+                        if (unstableCount == 0) Log.Debug($"Unstable point found at {powerModels[i].PointDate.TimeOfDay} ({i}): CV={current.CoefficientOfVariation}, Deviation={current.DeviationFromReference}");
                         unstableCount++;
-                        Log.Debug($"Unstable point found at {powerModels[i].PointDate.TimeOfDay} ({i}): CV={current.CoefficientOfVariation}, Deviation={current.DeviationFromReference}. Count: {unstableCount}");
                         if (unstableCount >= windowSize)
                             break;
                         pointCount++;
@@ -166,6 +163,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                     }
                     else
                     {
+                        if (unstableCount != 0) Log.Debug($"Unstable point ends at {powerModels[i].PointDate.TimeOfDay} ({i}): CV={current.CoefficientOfVariation}, Deviation={current.DeviationFromReference}. Count: {unstableCount}");
                         unstableCount = 0;
                         pointCount++;
                         totalPower += (int)current.AvrgPower;
@@ -418,7 +416,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                     if (IsConsideredAnInterval(newChild))   // TODO: check if child's power is lower than parent's
                     {
                         parent.Intervals?.Add(newChild);
-                        Log.Debug($"New subInterval added: startTime {child.StartTime.TimeOfDay} with {child.AveragePower} W in {child.TimeDiff} s");
+                        Log.Debug($"New subInterval added: startTime {newChild.StartTime.TimeOfDay} with {newChild.AveragePower} W in {newChild.TimeDiff} s");
                     }
                 }
                 else        // Collision at end
@@ -433,7 +431,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
                     if (IsConsideredAnInterval(newChild))   // TODO: check if child's power is lower than parent's
                     {
                         parent.Intervals?.Add(newChild);
-                        Log.Debug($"New subInterval added: startTime {child.StartTime.TimeOfDay} with {child.AveragePower} W in {child.TimeDiff} s");
+                        Log.Debug($"New subInterval added: startTime {newChild.StartTime.TimeOfDay} with {newChild.AveragePower} W in {newChild.TimeDiff} s");
                     }
 
                     GenerateNewIntervalAfterCollitionInEnd(parent, ref child);       // Pass reference after collision cuz might still be an interval

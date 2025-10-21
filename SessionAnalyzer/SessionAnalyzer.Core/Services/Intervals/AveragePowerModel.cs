@@ -1,4 +1,4 @@
-namespace CyclingTrainer.SessionAnalyzer.Core.Services.Intervals
+namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
     internal class AveragePowerModel
     {

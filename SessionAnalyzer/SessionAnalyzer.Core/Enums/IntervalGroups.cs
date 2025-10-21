@@ -1,4 +1,4 @@
-namespace CyclingTrainer.SessionAnalyzer.Core.Enums
+namespace CyclingTrainer.SessionAnalyzer.Enums
 {
     internal enum IntervalGroups
     {

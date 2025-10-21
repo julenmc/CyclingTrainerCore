@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using CyclingTrainer.SessionAnalyzer.Core.Models;
+using CyclingTrainer.SessionAnalyzer.Models;
 
-namespace CyclingTrainer.SessionAnalyzer.Core.Constants
+namespace CyclingTrainer.SessionAnalyzer.Constants
 {
     public static class IntervalSearchValues
     {
@@ -22,7 +22,7 @@ namespace CyclingTrainer.SessionAnalyzer.Core.Constants
         {
             Max     = new Thresholds(cvStart: 0.10f, cvFollow: 0.10f, range: 0.30f, maRel: 0.10f),
             Min     = new Thresholds(cvStart: 0.10f, cvFollow: 0.10f, range: 0.30f, maRel: 0.10f),
-            Default = new Thresholds(cvStart: 0.30f, cvFollow: 0.40f, range: 0.60f, maRel: 0.30f)
+            Default = new Thresholds(cvStart: 0.30f, cvFollow: 0.40f, range: 1.00f, maRel: 0.30f)
         };
     }
 }

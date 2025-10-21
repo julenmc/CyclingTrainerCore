@@ -2,7 +2,7 @@
 using NLog;
 using CyclingTrainer.TrainingDatabase.Core.Repository;
 
-namespace CyclingTrainer.SessionAnalyzer.Core.Services
+namespace CyclingTrainer.SessionAnalyzer.Services
 {
     internal static class ClimbSearchService
     {

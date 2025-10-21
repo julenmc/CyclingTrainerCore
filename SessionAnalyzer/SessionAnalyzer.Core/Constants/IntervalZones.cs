@@ -1,6 +1,6 @@
-using CyclingTrainer.SessionAnalyzer.Core.Enums;
+using CyclingTrainer.SessionAnalyzer.Enums;
 
-namespace CyclingTrainer.SessionAnalyzer.Core.Constants
+namespace CyclingTrainer.SessionAnalyzer.Constants
 {
     public static class IntervalZones
     {

@@ -1,8 +1,8 @@
 ﻿using CoreModels = CyclingTrainer.Core.Models;
 using CyclingTrainer.SessionReader.Core.Repository;
-using CyclingTrainer.SessionAnalyzer.Core.Services;
-using CyclingTrainer.SessionAnalyzer.Core.Services.Intervals;
-using Models = CyclingTrainer.SessionAnalyzer.Core.Models;
+using CyclingTrainer.SessionAnalyzer.Services;
+using CyclingTrainer.SessionAnalyzer.Services.Intervals;
+using Models = CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.Core.Models;
 
 namespace CyclingTrainer.SessionAnalyzer.Console

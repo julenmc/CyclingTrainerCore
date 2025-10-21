@@ -1,4 +1,4 @@
-namespace CyclingTrainer.SessionAnalyzer.Core.Models
+namespace CyclingTrainer.SessionAnalyzer.Models
 {
     public class Sprint
     {
