@@ -2,7 +2,7 @@
 using CyclingTrainer.Core.Constants;
 using CyclingTrainer.SessionAnalyzer.Services;
 using CyclingTrainer.SessionAnalyzer.Test.Models;
-using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionReader.Models;
 
 namespace CyclingTrainer.SessionAnalyzer.Test
 {

@@ -1,4 +1,4 @@
-using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionReader.Models;
 using CyclingTrainer.SessionAnalyzer.Test.Models;
 
 namespace CyclingTrainer.SessionAnalyzer.Test

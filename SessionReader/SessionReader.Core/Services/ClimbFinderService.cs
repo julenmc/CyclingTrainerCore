@@ -1,8 +1,8 @@
 ﻿using CyclingTrainer.Core.Models;
 using NLog;
-using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionReader.Models;
 
-namespace CyclingTrainer.SessionReader.Core.Services
+namespace CyclingTrainer.SessionReader.Services
 {
     internal static class ClimbFinderService
     {

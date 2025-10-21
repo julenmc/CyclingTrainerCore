@@ -1,6 +1,6 @@
-﻿using CyclingTrainer.SessionReader.Core.Models;
+﻿using CyclingTrainer.SessionReader.Models;
 
-namespace CyclingTrainer.SessionReader.Core.Services
+namespace CyclingTrainer.SessionReader.Services
 {
     public interface ISessionReader
     {

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 
-namespace CyclingTrainer.SessionReader.Core.Services.Fit
+namespace CyclingTrainer.SessionReader.Services.Fit
 {
     public class FitDecoder
     {

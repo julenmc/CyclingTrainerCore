@@ -1,6 +1,6 @@
 ﻿using CyclingTrainer.Core.Models;
-using CyclingTrainer.SessionReader.Core.Models;
-using CyclingTrainer.SessionReader.Core.Repository;
+using CyclingTrainer.SessionReader.Models;
+using CyclingTrainer.SessionReader.Repository;
 
 namespace CyclingTrainer.SessionReader.Console
 {

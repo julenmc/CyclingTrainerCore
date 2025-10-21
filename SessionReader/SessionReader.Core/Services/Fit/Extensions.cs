@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using Dynastream.Fit;
 
-namespace CyclingTrainer.SessionReader.Core.Services.Fit
+namespace CyclingTrainer.SessionReader.Services.Fit
 {
     public static class FitExtensions
     {

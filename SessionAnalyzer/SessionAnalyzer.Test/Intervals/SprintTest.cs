@@ -1,7 +1,7 @@
 using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionAnalyzer.Services.Intervals;
 using CyclingTrainer.SessionAnalyzer.Test.Models;
-using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionReader.Models;
 
 namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 {

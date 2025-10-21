@@ -8,7 +8,7 @@
 using System.Collections.Generic;
 using Dynastream.Fit;
 
-namespace CyclingTrainer.SessionReader.Core.Services.Fit
+namespace CyclingTrainer.SessionReader.Services.Fit
 {
     public class SessionMessages
     {

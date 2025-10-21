@@ -1,5 +1,5 @@
 ﻿using CoreModels = CyclingTrainer.Core.Models;
-using CyclingTrainer.SessionReader.Core.Repository;
+using CyclingTrainer.SessionReader.Repository;
 using CyclingTrainer.SessionAnalyzer.Services;
 using CyclingTrainer.SessionAnalyzer.Services.Intervals;
 using Models = CyclingTrainer.SessionAnalyzer.Models;

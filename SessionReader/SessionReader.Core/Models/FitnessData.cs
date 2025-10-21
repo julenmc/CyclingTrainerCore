@@ -1,4 +1,4 @@
-﻿namespace CyclingTrainer.SessionReader.Core.Models
+﻿namespace CyclingTrainer.SessionReader.Models
 {
     public class FitnessData
     {

@@ -1,7 +1,7 @@
 ﻿using CyclingTrainer.Core.Models;
 using NLog;
-using CyclingTrainer.SessionReader.Core.Models;
-using CyclingTrainer.SessionReader.Core.Repository;
+using CyclingTrainer.SessionReader.Models;
+using CyclingTrainer.SessionReader.Repository;
 using CyclingTrainer.TrainingDatabase.Core.Repository;
 
 using static CyclingTrainer.Core.Constants.PowerCurveConstants;

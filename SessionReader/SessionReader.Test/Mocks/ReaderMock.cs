@@ -1,8 +1,8 @@
 ﻿using NLog;
-using CyclingTrainer.SessionReader.Core.Models;
-using CyclingTrainer.SessionReader.Core.Repository;
-using CyclingTrainer.SessionReader.Core.Services;
-using static CyclingTrainer.SessionReader.Core.Services.ISessionReader;
+using CyclingTrainer.SessionReader.Models;
+using CyclingTrainer.SessionReader.Repository;
+using CyclingTrainer.SessionReader.Services;
+using static CyclingTrainer.SessionReader.Services.ISessionReader;
 
 namespace CyclingTrainer.SessionReader.Test.Mocks
 {

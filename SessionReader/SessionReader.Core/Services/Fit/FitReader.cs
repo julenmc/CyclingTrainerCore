@@ -1,9 +1,9 @@
 ﻿using NLog;
 using Dynastream.Fit;
-using CyclingTrainer.SessionReader.Core.Models;
-using static CyclingTrainer.SessionReader.Core.Services.ISessionReader;
+using CyclingTrainer.SessionReader.Models;
+using static CyclingTrainer.SessionReader.Services.ISessionReader;
 
-namespace CyclingTrainer.SessionReader.Core.Services.Fit
+namespace CyclingTrainer.SessionReader.Services.Fit
 {
     public class FitReader : ISessionReader
     {

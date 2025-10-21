@@ -1,4 +1,4 @@
-using CyclingTrainer.SessionReader.Core.Models;
+using CyclingTrainer.SessionReader.Models;
 
 namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
