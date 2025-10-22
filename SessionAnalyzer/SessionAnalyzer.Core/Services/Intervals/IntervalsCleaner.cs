@@ -1,9 +1,7 @@
 using CoreModels = CyclingTrainer.Core.Models;
 using CyclingTrainer.SessionAnalyzer.Constants;
 using CyclingTrainer.SessionAnalyzer.Models;
-using CyclingTrainer.SessionReader.Models;
 using NLog;
-using CyclingTrainer.SessionAnalyzer.Enums;
 
 namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {

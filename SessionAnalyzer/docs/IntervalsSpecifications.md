@@ -75,3 +75,6 @@ Para el correcto funcionamiento de este servicio se utilizarán los siguientes e
 * Add sprints to final return.
 * Eliminar el repositorio IntervalRepository.
 * Igual no siempre hay que recortar el más corto. Mira el test "CollisionInsideAtStart"; aquí tendría más sentido cortar el largo y mantener el corto.
+
+## Known issues
+* Por la gestión de colisiones me he encontrado intervalos de potencia muy baja. Ver el test de integración.

@@ -58,7 +58,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         }
 
         [TestMethod]
-        public void CollisionDivitionAtStart()        // Interval should be shortened and detected inside and outside the long interval
+        public void CollisionDivitionAtStart()  // Short interval should be divided because the difference between the avrPower of short and long intervals is too high. I don't like this, already in todo list
         {
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
@@ -92,7 +92,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             Assert.AreEqual(1, intervals.Count);
             Assert.AreEqual(LongDefaultTime + 150, intervals[0].TimeDiff);
             Assert.AreEqual(1, intervals[0].Intervals?.Count);
-            Assert.IsTrue(150 <= intervals[0].Intervals?[0].TimeDiff);   // Workaround, will check later
+            Assert.AreEqual(150, intervals[0].Intervals?[0].TimeDiff);   
         }
 
         [TestMethod]
@@ -114,7 +114,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         }
 
         [TestMethod]
-        public void CollisionDivitionAtEnd()        // Interval should shortened and detected inside the long interval
+        public void CollisionDivitionAtEnd()    // Short interval should be divided because the difference between the avrPower of short and long intervals is too high. I don't like this, already in todo list
         {
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
@@ -129,7 +129,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 
             Assert.AreEqual(LongDefaultTime + 150, intervals[0].TimeDiff);
             Assert.AreEqual(1, intervals[0].Intervals?.Count);
-            Assert.IsTrue(150 < intervals[0].Intervals?[0].TimeDiff);       // Workaround, will check later
+            Assert.AreEqual(150, intervals[0].Intervals?[0].TimeDiff);       
             Assert.AreEqual(90, intervals[1].TimeDiff);
             Assert.AreEqual(ShortDefaultPower, intervals[1].AveragePower);
         }

@@ -3,7 +3,6 @@ using CyclingTrainer.SessionAnalyzer.Constants;
 using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionReader.Models;
 using NLog;
-using CyclingTrainer.SessionAnalyzer.Enums;
 
 namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
@@ -61,7 +60,6 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 if (i >= powerModels.Count)
                     break;
 
-                var startIndex = i;
                 var startTime = powerModels[i].PointDate;
                 float referenceAverage = powerModels[i].AvrgPower;
                 int totalPower = 0;
@@ -73,7 +71,6 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 while (i < powerModels.Count)
                 {
                     var current = powerModels[i];
-                    //AveragePowerCalculator.CalculateDeviationFromReference(powerModels.Skip(startIndex).Take(i - startIndex + 1).ToList(), referenceAverage);
                     current.DeviationFromReference = Math.Abs(current.AvrgPower - referenceAverage) / referenceAverage;
 
                     if (!IsIntervalContinuation(current, cvFollowThr, maRelThr))
@@ -156,9 +153,9 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             // Expandir el rango para incluir puntos contiguos
             int extraPoints = interval.TimeDiff switch
             {
-                >= IntervalTimes.LongIntervalMinTime => AveragePowerCalculator.LongWindowSize * 3,
-                >= IntervalTimes.MediumIntervalMinTime => AveragePowerCalculator.MediumWindowSize * 3,
-                _ => AveragePowerCalculator.ShortWindowSize * 3
+                >= IntervalTimes.LongIntervalMinTime => Math.Max(AveragePowerCalculator.LongWindowSize, _windowSize) * 3,
+                >= IntervalTimes.MediumIntervalMinTime => Math.Max(AveragePowerCalculator.MediumWindowSize, _windowSize) * 3,
+                _ => Math.Max(AveragePowerCalculator.ShortWindowSize, _windowSize) * 3
             };
             int expandedStartIdx = Math.Max(0, intervalStartIdx - extraPoints);
             int expandedEndIdx = Math.Min(points.Count - 1, intervalEndIdx + extraPoints);
