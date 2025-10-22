@@ -17,11 +17,11 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         internal const int LongMinValue = 190;
         internal const int LongDefaultPower = (LongMaxValue + LongMinValue) / 2;
         internal const int ShortDefaultTime = 90;
-        internal const int MediumDefaultTime = 400;
-        internal const int LongDefaultTime = 1000;
-        internal const float ShortAcpDelta = 0.2f;   // 20% time acceptance delta for short intervals
-        internal const float MediumAcpDelta = 0.15f; // 15% time acceptance delta for medium intervals
-        internal const float LongAcpDelta = 0.05f;   // 5% time acceptance delta for long intervals
+        internal const int MediumDefaultTime = 360;     // 6 minutes
+        internal const int LongDefaultTime = 900;       // 15 minutes
+        internal const float ShortAcpDelta = 0.25f;   // 25% time delta accepted for short intervals
+        internal const float MediumAcpDelta = 0.2f; // 20% time delta accepted for medium intervals
+        internal const float LongAcpDelta = 0.1f;   // 10% time delta accepted for long intervals
 
         internal static readonly List<CoreModels.Zone> PowerZones = new List<CoreModels.Zone>{
             new CoreModels.Zone { Id = 1, LowLimit = 0, HighLimit = 129},

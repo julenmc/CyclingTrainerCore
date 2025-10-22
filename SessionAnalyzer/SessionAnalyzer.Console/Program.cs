@@ -26,8 +26,7 @@ namespace CyclingTrainer.SessionAnalyzer.Console
                 new CoreModels.Zone { Id = 6, LowLimit = 310, HighLimit = 379},
                 new CoreModels.Zone { Id = 7, LowLimit = 380, HighLimit = 2000}
             };
-            IntervalsService service = new IntervalsService(powerZones);
-            List<Models.Interval> intervals = service.Search(SessionRepository.GetFitnessData());
+            List<Models.Interval> intervals = IntervalsService.Search(SessionRepository.GetFitnessData(), powerZones);
             LogIntervals(intervals);
 
             // IntervalsService.DetectionThresholds thr = new IntervalsService.DetectionThresholds
@@ -52,18 +51,14 @@ namespace CyclingTrainer.SessionAnalyzer.Console
             // }
         }
 
-        private static void LogIntervals(List<Models.Interval> intervals)
+        private static void LogIntervals(List<Models.Interval> intervals, int level = 0)
         {
-            Logger.Info($"{intervals.Count} intervals found:");
             for (int i = 0; i < intervals.Count; i++)
             {
-                Logger.Info($"\tInterval {i}. Time: {intervals[i].StartTime.TimeOfDay}-{intervals[i].EndTime.TimeOfDay} ({intervals[i].TimeDiff} s), Power: {intervals[i].AveragePower} W");
+                Logger.Info($"{new string(' ', level * 2)}Interval {i}. Time: {intervals[i].StartTime.TimeOfDay}-{intervals[i].EndTime.TimeOfDay} ({intervals[i].TimeDiff} s), Power: {intervals[i].AveragePower} W");
                 if (intervals[i].Intervals?.Count != 0)
                 {
-                    for (int j = 0; j < intervals[i].Intervals?.Count; j++)
-                    {
-                        Logger.Info($"\t\tInterval {i},{j}. Time: {intervals[i].Intervals?[j].StartTime.TimeOfDay}-{intervals[i].Intervals?[j].EndTime.TimeOfDay} ({intervals[i].Intervals?[j].TimeDiff} s), Power: {intervals[i].Intervals?[j].AveragePower} W");
-                    }
+                    LogIntervals(intervals[i].Intervals, level + 1);
                 }
             }
         }

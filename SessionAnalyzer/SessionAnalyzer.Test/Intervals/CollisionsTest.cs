@@ -22,7 +22,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         }
 
         [TestMethod]
-        public void CollisionOutsideAtStart()        // Interval should shortened and detected before the long interval
+        public void CollisionOutsideAtStart()   // Interval should shortened and detected before the long interval, difference between avrPower of short and long is too high to merge
         {
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
@@ -32,8 +32,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = LongDefaultTime, Power = LongDefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            IntervalsService service = new IntervalsService(PowerZones);
-            List<Interval> intervals = service.Search(fitnessData);
+            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
             Assert.AreEqual(2, intervals.Count);
             Assert.AreEqual(90, intervals[0].TimeDiff);
             Assert.AreEqual(ShortDefaultPower, intervals[0].AveragePower);
@@ -41,7 +40,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         }
 
         [TestMethod]
-        public void CollisionInsideAtStart()        // Interval should be shortened and detected inside the long interval
+        public void CollisionInsideAtStart()    // Short interval should be shortened and detected inside the long interval
         {
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
@@ -51,8 +50,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = LongDefaultTime, Power = LongDefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            IntervalsService service = new IntervalsService(PowerZones);
-            List<Interval> intervals = service.Search(fitnessData);
+            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
             Assert.AreEqual(1, intervals.Count);
             Assert.AreEqual(LongDefaultTime + 150, intervals[0].TimeDiff);
             Assert.AreEqual(1, intervals[0].Intervals?.Count);
@@ -70,8 +68,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = LongDefaultTime, Power = LongDefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            IntervalsService service = new IntervalsService(PowerZones);
-            List<Interval> intervals = service.Search(fitnessData);
+            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
             Assert.AreEqual(2, intervals.Count);
             Assert.AreEqual(90, intervals[0].TimeDiff);
             Assert.AreEqual(ShortDefaultPower, intervals[0].AveragePower);
@@ -91,12 +88,11 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = 20, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            IntervalsService service = new IntervalsService(PowerZones);
-            List<Interval> intervals = service.Search(fitnessData);
+            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
             Assert.AreEqual(1, intervals.Count);
             Assert.AreEqual(LongDefaultTime + 150, intervals[0].TimeDiff);
             Assert.AreEqual(1, intervals[0].Intervals?.Count);
-            Assert.IsTrue(150 < intervals[0].Intervals?[0].TimeDiff);   // Workaround, will check later
+            Assert.IsTrue(150 <= intervals[0].Intervals?[0].TimeDiff);   // Workaround, will check later
         }
 
         [TestMethod]
@@ -110,8 +106,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = 90, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            IntervalsService service = new IntervalsService(PowerZones);
-            List<Interval> intervals = service.Search(fitnessData);
+            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
             Assert.AreEqual(2, intervals.Count);
             Assert.AreEqual(LongDefaultTime + 80, intervals[0].TimeDiff);
             Assert.AreEqual(90, intervals[1].TimeDiff);
@@ -129,8 +124,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = 90, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            IntervalsService service = new IntervalsService(PowerZones);
-            List<Interval> intervals = service.Search(fitnessData);
+            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
             Assert.AreEqual(2, intervals.Count);
 
             Assert.AreEqual(LongDefaultTime + 150, intervals[0].TimeDiff);

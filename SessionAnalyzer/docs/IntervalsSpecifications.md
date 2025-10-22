@@ -25,7 +25,7 @@ Con esto, el proceso completo quedaría algo así:
 1. Ejecución del servicio de sprints, con la eliminación de estos de la potencia de la actividad.
 2. Cálculo de potencias medias, desviaciones y rangos de la actividad.
 3. Búsqueda de intervalos usando los datos calculados para cada una de las agrupaciones de tiempos. Se realizará un refinamiento del intervalo cuando este se de por finalizado.
-4. Limpieza final e integración de intervalos dentro de otros, gestión de colisiones.
+4. Gestión de colisiones e integración de intervalos dentro de otros.
 
 ### Intervals search
 Para la búsqueda de intervalos se utilizarán hasta tres tipos de datos:
@@ -53,6 +53,7 @@ Las colisiones se gestionan de dos diferentes maneras:
 Tal y como se ha indicado al principio: un intervalo puede estar compuesto por varios sub-intervalos de duración más corta. Siguiendo el modelo de clase [`Interval`](../SessionAnalyzer.Core/Models/Interval.cs), se guardarán dentro del intervalo de mayor duración los de menor duración. Por lo tanto, aunque la función solo devuelva los principales intervalos, se podrán encontrar el resto de los intervalos dentro de los principales. 
 
 > Nota: Un sub-intervalo puede contener sus propios sub-intervalos.
+> Nota: Un sub-intervalo nunca tendrá una potencia media menor que su superior.
 
 ## Structure
 Para el correcto funcionamiento de este servicio se utilizarán los siguientes elementos:
@@ -64,10 +65,13 @@ Para el correcto funcionamiento de este servicio se utilizarán los siguientes e
     1. [`IntervalsService`](../SessionAnalyzer.Core/Services/Intervals/IntervalsService.cs): Clase principal de la búsqueda de intervalos. Se encarga de llevar la lógica principal del proceso.
     2. [`SprintService`](../SessionAnalyzer.Core/Services/Intervals/SprintService.cs): Servicio estático de la búsqueda de sprints. Se encarga de buscarlos y eliminarlos de los datos de potencia (así facilita la búsqueda de intervalos).
     3. [`AveragePowerCalculator`](../SessionAnalyzer.Core/Services/Intervals/AveragePowerCalculator.cs): Servicio estático que se encarga del cálculo de toda la información necesaria (medias, desviaciones, rangos...) para seguir con la lógica de búsqueda.
+    4. [`IntervalsFinder´](../SessionAnalyzer.Core/Services/Intervals/IntervalsFinder.cs): Clase para realizar búsquedas por grupos.
+    5. [`IntervalsCleaner´](../SessionAnalyzer.Core/Services/Intervals/IntervalsCleaner.cs): Clase para realizar la limpieza de los intervalos (gestión de colisiones e integraciones de sub-intervalos).
+    6. [`IntervalsUtils´](../SessionAnalyzer.Core/Services/Intervals/IntervalsUtils.cs): Clase estática con herramientas comunes para la búsqueda y gestión de intervalos.
 
 
 ## Intervals To Dos
 * Add async method with multiple tasks for the interval detection. One task for each interval time span (short, medium or long).
-* Before spitting an interval when a collision occurs, check if they can be merged, creating a new longer interval.
 * Add sprints to final return.
 * Eliminar el repositorio IntervalRepository.
+* Igual no siempre hay que recortar el más corto. Mira el test "CollisionInsideAtStart"; aquí tendría más sentido cortar el largo y mantener el corto.
