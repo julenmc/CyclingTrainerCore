@@ -50,6 +50,24 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         }
 
         [TestMethod]
+        public void ShortStopShort()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = ShortDefaultTime, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = 0, Power = 20, HearRate = 0, Cadence = 0},
+                new FitnessSection{ Time = ShortDefaultTime, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            List<Interval> intervals = IntervalsService.Search(fitnessData, PowerZones);
+            Assert.AreEqual(2, intervals.Count);
+            Assert.AreEqual(ShortDefaultTime, intervals.First().TimeDiff);
+            Assert.AreEqual(ShortDefaultPower, intervals.First().AveragePower);
+            Assert.AreEqual(ShortDefaultTime, intervals.Last().TimeDiff);
+            Assert.AreEqual(ShortDefaultPower, intervals.Last().AveragePower);
+        }
+
+        [TestMethod]
         public void NuleMediumNule()
         {
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>

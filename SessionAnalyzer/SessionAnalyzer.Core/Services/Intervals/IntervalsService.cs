@@ -25,17 +25,17 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             IntervalRepository.SetFitnessData(activityPoints);
 
             // Detectar y eliminar sprints primero
-            CoreModels.Zone? sprint = powerZones.Find(x => x.Id == 7);
-            if (sprint == null)
-            {
-                Log.Warn("No sprint power zone found");
-                return new List<Interval>();
-            }
-            int sprintPower = sprint.LowLimit;
-            Log.Info($"Starting sprint detection and removal at {sprintPower} W...");
-            SprintService.SetConfiguration(5, sprintPower * 11 / 10, sprintPower);
-            SprintService.AnalyzeActivity(activityPoints);
-            Log.Info("Sprint detection completed");
+            // CoreModels.Zone? sprint = powerZones.Find(x => x.Id == 7);
+            // if (sprint == null)
+            // {
+            //     Log.Warn("No sprint power zone found");
+            //     return new List<Interval>();
+            // }
+            // int sprintPower = sprint.LowLimit;
+            // Log.Info($"Starting sprint detection and removal at {sprintPower} W...");
+            // SprintService.SetConfiguration(5, sprintPower * 11 / 10, sprintPower);
+            // SprintService.AnalyzeActivity(activityPoints);
+            // Log.Info("Sprint detection completed");
 
             // Short intervals
             List<Interval> intervals = new List<Interval>();
@@ -45,7 +45,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 HighLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short] + 2)?.HighLimit ?? 0,
                 LowLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short])?.LowLimit ?? 0
             };
-            IntervalsFinder finder = new IntervalsFinder(powerZones, AveragePowerCalculator.ShortWindowSize, zone, thresholds);
+            IntervalsFinder finder = new IntervalsFinder(powerZones, IntervalTimes.ShortWindowSize, zone, thresholds);
             List<Interval> tmp = finder.Search();
             Log.Info($"Short intervals search done. {tmp.Count} intervals found");
             intervals.AddRange(tmp);
@@ -57,7 +57,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 HighLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium] + 2)?.HighLimit ?? 0,
                 LowLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium])?.LowLimit ?? 0
             };
-            finder = new IntervalsFinder(powerZones, AveragePowerCalculator.MediumWindowSize, zone, thresholds);
+            finder = new IntervalsFinder(powerZones, IntervalTimes.MediumWindowSize, zone, thresholds);
             tmp = finder.Search();
 
             for (int i = 0; i < tmp.Count; i++)
@@ -78,7 +78,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 HighLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Long] + 2)?.HighLimit ?? 0,
                 LowLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Long])?.LowLimit ?? 0
             };
-            finder = new IntervalsFinder(powerZones, AveragePowerCalculator.LongWindowSize, zone, thresholds);
+            finder = new IntervalsFinder(powerZones, IntervalTimes.LongWindowSize, zone, thresholds);
             tmp = finder.Search();
             for (int i = 0; i < tmp.Count; i++)
             {
@@ -92,8 +92,8 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             intervals.AddRange(tmp);
 
             // Integrar intervalos
-            IntervalsCleaner cleaner = new IntervalsCleaner(powerZones, thresholds);
-            cleaner.Clean(ref intervals);
+            IntervalsRefiner refiner = new IntervalsRefiner(powerZones, thresholds);
+            refiner.Refine(ref intervals);
 
             Log.Info($"Interval search completed. Found {intervals.Count} main intervals");
             intervals.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));

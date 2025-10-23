@@ -68,13 +68,3 @@ Para el correcto funcionamiento de este servicio se utilizarán los siguientes e
     4. [`IntervalsFinder´](../SessionAnalyzer.Core/Services/Intervals/IntervalsFinder.cs): Clase para realizar búsquedas por grupos.
     5. [`IntervalsCleaner´](../SessionAnalyzer.Core/Services/Intervals/IntervalsCleaner.cs): Clase para realizar la limpieza de los intervalos (gestión de colisiones e integraciones de sub-intervalos).
     6. [`IntervalsUtils´](../SessionAnalyzer.Core/Services/Intervals/IntervalsUtils.cs): Clase estática con herramientas comunes para la búsqueda y gestión de intervalos.
-
-
-## Intervals To Dos
-* Add async method with multiple tasks for the interval detection. One task for each interval time span (short, medium or long).
-* Add sprints to final return.
-* Eliminar el repositorio IntervalRepository.
-* Igual no siempre hay que recortar el más corto. Mira el test "CollisionInsideAtStart"; aquí tendría más sentido cortar el largo y mantener el corto.
-
-## Known issues
-* Por la gestión de colisiones me he encontrado intervalos de potencia muy baja. Ver el test de integración.

@@ -15,3 +15,11 @@ Estas son las principales funcionalidades de la biblioteca:
 ## Funcionalidades a futuro ("To Do")
 * Cálculo de datos típicos como la potencia normalizada, factor de intensidad, carga...
 * Desacople aeróbico.
+* Add async method with multiple tasks for the interval detection. One task for each interval time span (short, medium or long).
+* Add sprints to final return of intervals service.
+* Eliminar el repositorio IntervalRepository.
+* Igual no siempre hay que recortar el intervalo más corto. Mirar el test "CollisionInsideAtStart"; aquí tendría más sentido cortar el largo y mantener el corto.
+
+## Known issues
+* No se están buscando los sprints.
+* En el test de la consola el intervalo de las 15:54:00 y el de las 15:59:42 no tienen sentido, empiezan más tarde de lo que deberían. Los intervalos cortos anteriores y posteriores no tienen el mismo problema.

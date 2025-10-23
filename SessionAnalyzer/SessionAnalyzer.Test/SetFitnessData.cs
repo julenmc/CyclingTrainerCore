@@ -11,20 +11,26 @@ namespace CyclingTrainer.SessionAnalyzer.Test
             DateTime startDate = new DateTime(2025, 07, 14, 12, 00, 00);
             foreach (FitnessSection section in fitnessTestSections)
             {
-                for (int i = 0; i < section.Time; i++)
+                // Check if session has stopped
+                if (section.Time == 0)
                 {
-                    fitnessData.Add(new FitnessData
-                    {
-                        Timestamp = new Dynastream.Fit.DateTime(startDate),
-                        Stats = new PointStats
-                        {
-                            Power = section.Power,
-                            HeartRate = section.HearRate,
-                            Cadence = section.Cadence
-                        }
-                    });
-                    startDate = startDate.AddSeconds(1);
+                    startDate = startDate.AddSeconds(section.Power);        // Workaround to add stopped time to a session, the time is given with the power
+                    continue;
                 }
+                for (int i = 0; i < section.Time; i++)
+                    {
+                        fitnessData.Add(new FitnessData
+                        {
+                            Timestamp = new Dynastream.Fit.DateTime(startDate),
+                            Stats = new PointStats
+                            {
+                                Power = section.Power,
+                                HeartRate = section.HearRate,
+                                Cadence = section.Cadence
+                            }
+                        });
+                        startDate = startDate.AddSeconds(1);
+                    }
             }
 
             return fitnessData;

@@ -1,5 +1,6 @@
 using CoreModels = CyclingTrainer.Core.Models;
 using CyclingTrainer.SessionAnalyzer.Constants;
+using CyclingTrainer.SessionAnalyzer.Enums;
 using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionReader.Models;
 using NLog;
@@ -27,9 +28,9 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
         {
             Thresholds defaultThresholds = _windowSize switch
             {
-                AveragePowerCalculator.ShortWindowSize => IntervalSearchValues.ShortIntervals.Default,
-                AveragePowerCalculator.MediumWindowSize => IntervalSearchValues.MediumIntervals.Default,
-                AveragePowerCalculator.LongWindowSize => IntervalSearchValues.LongIntervals.Default,
+                IntervalTimes.ShortWindowSize => IntervalSearchValues.ShortIntervals.Default,
+                IntervalTimes.MediumWindowSize => IntervalSearchValues.MediumIntervals.Default,
+                IntervalTimes.LongWindowSize => IntervalSearchValues.LongIntervals.Default,
                 _ => throw new Exception("Window size not accepted"),
             };
             // Inicializar con valores por defecto si no se proporcionan
@@ -64,12 +65,20 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 float referenceAverage = powerModels[i].AvrgPower;
                 int totalPower = 0;
                 int pointCount = 0;
+                bool sessionStopped = false;
                 Log.Debug($"New interval might start at: startDate={startTime.TimeOfDay}: CV={powerModels[i].CoefficientOfVariation}. Range={powerModels[i].RangePercent}");
 
                 // Seguir el intervalo mientras se mantenga estable
                 int unstableCount = 0;
                 while (i < powerModels.Count)
                 {
+                    int timeDiff = (i > 0) ? (int)(powerModels[i].PointDate - powerModels[i - 1].PointDate).TotalSeconds : 1;
+                    if (timeDiff > 1)
+                    {
+                        Log.Debug($"Session stopped at {powerModels[i - 1].PointDate.TimeOfDay} for {timeDiff - _windowSize} seconds. Finishing interval");
+                        sessionStopped = true;
+                        break;
+                    }
                     var current = powerModels[i];
                     current.DeviationFromReference = Math.Abs(current.AvrgPower - referenceAverage) / referenceAverage;
 
@@ -84,8 +93,11 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                     }
                     else
                     {
-                        if (unstableCount != 0) Log.Debug($"Unstable point ends at {powerModels[i].PointDate.TimeOfDay} ({i}): CV={current.CoefficientOfVariation}, Deviation={current.DeviationFromReference}. Count: {unstableCount}");
-                        unstableCount = 0;
+                        if (unstableCount != 0)
+                        {
+                            Log.Debug($"Unstable point ends at {powerModels[i].PointDate.TimeOfDay} ({i}): CV={current.CoefficientOfVariation}, Deviation={current.DeviationFromReference}. Count: {unstableCount}");
+                            unstableCount = 0;
+                        }
                         pointCount++;
                         totalPower += (int)current.AvrgPower;
                         referenceAverage = (float)totalPower / pointCount;
@@ -95,6 +107,11 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 }
 
                 int auxIndex = i >= powerModels.Count ? i - 1 : i;
+                if (sessionStopped)
+                {
+                    auxIndex--;
+                    i++;
+                }
                 var endTime = powerModels[Math.Max(0, auxIndex)].PointDate;
                 var duration = (endTime - startTime).TotalSeconds + 1;
 
@@ -110,7 +127,14 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 RefineIntervalLimits(newInterval, remainingPoints);
                 Log.Debug($"Found interval: Time={newInterval.StartTime.TimeOfDay}-{newInterval.EndTime.TimeOfDay} ({newInterval.TimeDiff}s), avgPower={newInterval.AveragePower}W");
 
-                if (IntervalsUtils.IsConsideredAnInterval(newInterval, _powerZones))
+                IntervalGroups group = _windowSize switch
+                {
+                    IntervalTimes.ShortWindowSize => IntervalGroups.Short,
+                    IntervalTimes.MediumWindowSize => IntervalGroups.Medium,
+                    IntervalTimes.LongWindowSize => IntervalGroups.Long,
+                    _ => throw new Exception($"Unknown window size ({_windowSize})")
+                };
+                if (newInterval.TimeDiff >= IntervalTimes.IntervalMinTimes[group] && IntervalsUtils.IsConsideredAnInterval(newInterval, _powerZones))
                 {
                     Log.Info($"Saved interval: Time={newInterval.StartTime.TimeOfDay}-{newInterval.EndTime.TimeOfDay} ({newInterval.TimeDiff}s), avgPower={newInterval.AveragePower}W");
                     intervals.Add(newInterval);
@@ -153,12 +177,41 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             // Expandir el rango para incluir puntos contiguos
             int extraPoints = interval.TimeDiff switch
             {
-                >= IntervalTimes.LongIntervalMinTime => Math.Max(AveragePowerCalculator.LongWindowSize, _windowSize) * 3,
-                >= IntervalTimes.MediumIntervalMinTime => Math.Max(AveragePowerCalculator.MediumWindowSize, _windowSize) * 3,
-                _ => Math.Max(AveragePowerCalculator.ShortWindowSize, _windowSize) * 3
+                >= IntervalTimes.LongIntervalMinTime => Math.Max(IntervalTimes.LongWindowSize, _windowSize) * 3,
+                >= IntervalTimes.MediumIntervalMinTime => Math.Max(IntervalTimes.MediumWindowSize, _windowSize) * 3,
+                _ => Math.Max(IntervalTimes.ShortWindowSize, _windowSize) * 3
             };
             int expandedStartIdx = Math.Max(0, intervalStartIdx - extraPoints);
             int expandedEndIdx = Math.Min(points.Count - 1, intervalEndIdx + extraPoints);
+
+            // Check if session has been stopped during the expansion
+            var expandedStartPoints = points.GetRange(expandedStartIdx, intervalStartIdx - expandedStartIdx + 1);
+            int auxIndex = 1;
+            while (auxIndex < expandedStartPoints.Count)
+            {
+                if ((int)(expandedStartPoints[auxIndex].Timestamp.GetDateTime() - expandedStartPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1)
+                {
+                    expandedStartIdx = intervalStartIdx - (expandedStartPoints.Count - auxIndex) + 1;
+                    expandedStartPoints = points.GetRange(expandedStartIdx, intervalStartIdx - expandedStartIdx + 1);
+                    auxIndex = 1;
+                }
+                else
+                    auxIndex++;
+            }
+
+            var expandedEndPoints = points.GetRange(intervalEndIdx, expandedEndIdx - intervalEndIdx + 1);
+            auxIndex = 1;
+            while (auxIndex < expandedEndPoints.Count)
+            {
+                if ((int)(expandedEndPoints[auxIndex].Timestamp.GetDateTime() - expandedEndPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1)
+                {
+                    expandedEndIdx = auxIndex + intervalEndIdx - 1;
+                    expandedEndPoints = points.GetRange(intervalEndIdx, expandedEndIdx - intervalEndIdx + 1);
+                    auxIndex = 1;
+                }
+                else
+                    auxIndex++;
+            }
 
             var expandedPoints = points.GetRange(expandedStartIdx, expandedEndIdx - expandedStartIdx + 1);
 

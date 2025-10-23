@@ -5,20 +5,20 @@ using NLog;
 
 namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
-    internal class IntervalsCleaner
+    internal class IntervalsRefiner
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private List<CoreModels.Zone> _powerZones;
         private Thresholds? _thresholds;
 
-        internal IntervalsCleaner(List<CoreModels.Zone> powerZones, Thresholds? thresholds = null)
+        internal IntervalsRefiner(List<CoreModels.Zone> powerZones, Thresholds? thresholds = null)
         {
             _powerZones = powerZones;
             _thresholds = thresholds;
         }
 
-        internal void Clean(ref List<Interval> intervals)
+        internal void Refine(ref List<Interval> intervals)
         {
             Log.Debug($"Checking relations of {intervals.Count} intervals...");
 
@@ -49,7 +49,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 {
                     Log.Debug($"Integration of interval at {interval.StartTime.TimeOfDay} ({interval.TimeDiff}s) to be started...");
                     List<Interval> aux = interval.Intervals;    // IDK why
-                    this.Clean(ref aux);
+                    this.Refine(ref aux);
                     interval.Intervals = aux;
                 }
             }
