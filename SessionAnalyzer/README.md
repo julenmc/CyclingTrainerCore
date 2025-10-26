@@ -17,7 +17,7 @@ Estas son las principales funcionalidades de la biblioteca:
 * Desacople aeróbico.
 * Intervalos:
     * Añadir método asíncrono con llamadas en diferentes tareas para cada periodo definido (sprint, corto, medio y largo).
-    * Eliminar el repositorio IntervalRepository.
+    * Limpiar el repositorio IntervalRepository, quitar la gestión de sprints, que sirva solo para guardar os puntos de la sesión.
     * Igual no siempre hay que recortar el intervalo más corto. Mirar a futuro.
     * Probar si durante el refinado se pueden perder sprints.
     * La colisión de los intervalos se gesitionará antes de asignarlos como sub-intervalos.

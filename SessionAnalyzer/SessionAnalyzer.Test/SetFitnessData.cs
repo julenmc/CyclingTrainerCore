@@ -1,4 +1,5 @@
 using CyclingTrainer.SessionReader.Models;
+using CyclingTrainer.SessionAnalyzer.Test.Constants;
 using CyclingTrainer.SessionAnalyzer.Test.Models;
 
 namespace CyclingTrainer.SessionAnalyzer.Test
@@ -8,7 +9,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test
         internal static List<FitnessData> SetData(List<FitnessSection> fitnessTestSections)
         {
             List<FitnessData> fitnessData = new List<FitnessData>();
-            DateTime startDate = new DateTime(2025, 07, 14, 12, 00, 00);
+            DateTime startDate = FitnessDataCreation.DefaultStartDate;
             foreach (FitnessSection section in fitnessTestSections)
             {
                 // Check if session has stopped

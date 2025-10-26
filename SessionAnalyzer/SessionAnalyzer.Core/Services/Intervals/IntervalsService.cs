@@ -93,7 +93,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 
             // Integrar intervalos
             IntervalsRefiner refiner = new IntervalsRefiner(powerZones, thresholds);
-            refiner.Refine(ref intervals);
+            refiner.Refine(intervals);
 
             Log.Info($"Interval search completed. Found {intervals.Count} main intervals");
             intervals.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));

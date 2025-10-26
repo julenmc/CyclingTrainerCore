@@ -86,6 +86,9 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             Assert.AreEqual(1, intervals.Count);
             Assert.AreEqual(300, intervals.First().AveragePower);
             Assert.AreEqual(410, intervals.First().TimeDiff);
+            Assert.AreEqual(1, intervals.First().Intervals?.Count);
+            Assert.AreEqual(10, intervals.First().Intervals[0].TimeDiff);
+            Assert.AreEqual(700, intervals.First().Intervals[0].AveragePower);
         }
 
         [TestMethod]

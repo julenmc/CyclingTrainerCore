@@ -18,7 +18,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             _thresholds = thresholds;
         }
 
-        internal void Refine(ref List<Interval> intervals)
+        internal void Refine(List<Interval> intervals)
         {
             Log.Debug($"Checking relations of {intervals.Count} intervals...");
 
@@ -49,7 +49,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 {
                     Log.Debug($"Integration of interval at {interval.StartTime.TimeOfDay} ({interval.TimeDiff}s) to be started...");
                     List<Interval> aux = interval.Intervals;    // IDK why
-                    this.Refine(ref aux);
+                    this.Refine(aux);
                     interval.Intervals = aux;
                 }
             }

@@ -47,7 +47,7 @@ Dado que se detectan los intervalos de 3 formas diferentes, es muy probable que 
 
 Las colisiones se gestionan de dos diferentes maneras:
 1- Unión entre intervalos. En caso de que sean intervalos de potencia media parecida, se hará una unión de ambos.
-2- División del intervalo de menor duración. En caso de que la potencia media no sea parecida, el intervalo de menor duración se dividirá en dos para evitar la colisión. Luego se verá si los intervalos generados son válidos o no.
+2- Recorte del intervalo de menor prioridad (intervalo de menor potencia). En caso de que la potencia media no sea parecida, el intervalo de menor prioridad se recortará para evitar la colisión.
 
 ### Integration
 Tal y como se ha indicado al principio: un intervalo puede estar compuesto por varios sub-intervalos de duración más corta. Siguiendo el modelo de clase [`Interval`](../SessionAnalyzer.Core/Models/Interval.cs), se guardarán dentro del intervalo de mayor duración los de menor duración. Por lo tanto, aunque la función solo devuelva los principales intervalos, se podrán encontrar el resto de los intervalos dentro de los principales. 
