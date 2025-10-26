@@ -57,7 +57,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             {
                 // Check if the session has been stopped
                 int timeDiff = (int)(points[index].Timestamp.GetDateTime() - points[index - 1].Timestamp.GetDateTime()).TotalSeconds;
-                if (timeDiff > 1)
+                if (timeDiff > 1 && !IntervalRepository.IsTheGapASprint(points[index].Timestamp.GetDateTime()))
                 {
                     Log.Debug($"Session stopped at {points[index - 1].Timestamp.GetDateTime().TimeOfDay} for {timeDiff-1} seconds");
                     goto createWindow;

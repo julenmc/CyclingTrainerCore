@@ -25,20 +25,20 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             IntervalRepository.SetFitnessData(activityPoints);
 
             // Detectar y eliminar sprints primero
-            // CoreModels.Zone? sprint = powerZones.Find(x => x.Id == 7);
-            // if (sprint == null)
-            // {
-            //     Log.Warn("No sprint power zone found");
-            //     return new List<Interval>();
-            // }
-            // int sprintPower = sprint.LowLimit;
-            // Log.Info($"Starting sprint detection and removal at {sprintPower} W...");
-            // SprintService.SetConfiguration(5, sprintPower * 11 / 10, sprintPower);
-            // SprintService.AnalyzeActivity(activityPoints);
-            // Log.Info("Sprint detection completed");
+            CoreModels.Zone? sprint = powerZones.Find(x => x.Id == 7);
+            if (sprint == null)
+            {
+                Log.Warn("No sprint power zone found");
+                return new List<Interval>();
+            }
+            int sprintPower = sprint.LowLimit;
+            Log.Info($"Starting sprint detection and removal at {sprintPower} W...");
+            SprintService.SetConfiguration(5, sprintPower * 11 / 10, sprintPower);
+            SprintService.AnalyzeActivity(activityPoints);
+            Log.Info("Sprint detection completed");
+            List<Interval> intervals = IntervalRepository.GetSprints();
 
             // Short intervals
-            List<Interval> intervals = new List<Interval>();
             Log.Info($"Starting short interval search...");
             CoreModels.Zone zone = new CoreModels.Zone
             {

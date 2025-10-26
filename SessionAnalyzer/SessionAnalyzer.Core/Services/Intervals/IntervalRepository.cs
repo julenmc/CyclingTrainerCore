@@ -6,16 +6,16 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
     internal static class IntervalRepository
     {
         private readonly static List<FitnessData> _fitnessData = new();
-        private readonly static List<Sprint> _sprints = new();
+        private readonly static List<Interval> _sprints = new();
 
-        public static void SetFitnessData(List<FitnessData> fitnessData)
+        internal static void SetFitnessData(List<FitnessData> fitnessData)
         {
             _fitnessData.Clear();
             _sprints.Clear();
             _fitnessData.AddRange(fitnessData);
         }
 
-        public static void AddSprint(Sprint sprint)
+        internal static void AddSprint(Interval sprint)
         {
             _sprints.Add(sprint);
             
@@ -25,17 +25,22 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 data.Timestamp.GetDateTime() < sprint.EndTime);
         }
 
-        public static List<FitnessData> GetRemainingFitnessData()
+        internal static List<FitnessData> GetRemainingFitnessData()
         {
             return _fitnessData.ToList();
         }
 
-        public static List<Sprint> GetSprints()
+        internal static List<Interval> GetSprints()
         {
             return _sprints.ToList();
         }
 
-        public static void Clear()
+        internal static bool IsTheGapASprint(DateTime time)
+        {
+            return _sprints.Find(x => x.EndTime == time) != null;
+        }
+
+        internal static void Clear()
         {
             _fitnessData.Clear();
             _sprints.Clear();

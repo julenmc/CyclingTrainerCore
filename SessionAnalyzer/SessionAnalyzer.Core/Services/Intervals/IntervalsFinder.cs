@@ -73,7 +73,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 while (i < powerModels.Count)
                 {
                     int timeDiff = (i > 0) ? (int)(powerModels[i].PointDate - powerModels[i - 1].PointDate).TotalSeconds : 1;
-                    if (timeDiff > 1)
+                    if (timeDiff > 1 && !IntervalRepository.IsTheGapASprint(powerModels[i].PointDate))
                     {
                         Log.Debug($"Session stopped at {powerModels[i - 1].PointDate.TimeOfDay} for {timeDiff - _windowSize} seconds. Finishing interval");
                         sessionStopped = true;
@@ -189,21 +189,25 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             int auxIndex = 1;
             while (auxIndex < expandedStartPoints.Count)
             {
-                if ((int)(expandedStartPoints[auxIndex].Timestamp.GetDateTime() - expandedStartPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1)
+                if ((int)(expandedStartPoints[auxIndex].Timestamp.GetDateTime() - expandedStartPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1 && 
+                    !IntervalRepository.IsTheGapASprint(expandedStartPoints[auxIndex].Timestamp.GetDateTime()))
                 {
                     expandedStartIdx = intervalStartIdx - (expandedStartPoints.Count - auxIndex) + 1;
                     expandedStartPoints = points.GetRange(expandedStartIdx, intervalStartIdx - expandedStartIdx + 1);
                     auxIndex = 1;
                 }
                 else
+                {
                     auxIndex++;
+                }
             }
 
             var expandedEndPoints = points.GetRange(intervalEndIdx, expandedEndIdx - intervalEndIdx + 1);
             auxIndex = 1;
             while (auxIndex < expandedEndPoints.Count)
             {
-                if ((int)(expandedEndPoints[auxIndex].Timestamp.GetDateTime() - expandedEndPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1)
+                if ((int)(expandedEndPoints[auxIndex].Timestamp.GetDateTime() - expandedEndPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1 && 
+                    !IntervalRepository.IsTheGapASprint(expandedEndPoints[auxIndex].Timestamp.GetDateTime()))
                 {
                     expandedEndIdx = auxIndex + intervalEndIdx - 1;
                     expandedEndPoints = points.GetRange(intervalEndIdx, expandedEndIdx - intervalEndIdx + 1);

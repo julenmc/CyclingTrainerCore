@@ -35,7 +35,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             _fitnessData = FitnessDataService.SetData(fitnessTestSections);
             SprintService.SetConfiguration(5, 550, 500);
             SprintService.AnalyzeActivity(_fitnessData);
-            List<Sprint> sprints = IntervalRepository.GetSprints();
+            List<Interval> sprints = IntervalRepository.GetSprints();
             Assert.AreEqual(1, sprints.Count);
             Assert.AreEqual(575, sprints.First().AveragePower);
             Assert.AreEqual(10, sprints.First().TimeDiff);
@@ -57,7 +57,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             _fitnessData = FitnessDataService.SetData(fitnessTestSections);
             SprintService.SetConfiguration(5, 550, 500);
             SprintService.AnalyzeActivity(_fitnessData);
-            List<Sprint> sprints = IntervalRepository.GetSprints();
+            List<Interval> sprints = IntervalRepository.GetSprints();
             Assert.AreEqual(1, sprints.Count);
             Assert.AreEqual((float)5750/11, sprints.First().AveragePower);
             Assert.AreEqual(11, sprints.First().TimeDiff);
@@ -79,7 +79,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             _fitnessData = FitnessDataService.SetData(fitnessTestSections);
             SprintService.SetConfiguration(5, 550, 500);
             SprintService.AnalyzeActivity(_fitnessData);
-            List<Sprint> sprints = IntervalRepository.GetSprints();
+            List<Interval> sprints = IntervalRepository.GetSprints();
             Assert.AreEqual(2, sprints.Count);
             Assert.AreEqual(600, sprints.First().AveragePower);
             Assert.AreEqual(550, sprints.Last().AveragePower);

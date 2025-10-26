@@ -24,7 +24,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             _endTrigger = endTrigger;
         }
 
-        public static void AnalyzeActivity(List<FitnessData> activityPoints)
+        internal static void AnalyzeActivity(List<FitnessData> activityPoints)
         {
             Log.Info($"Searching for sprints...");
             if (activityPoints == null || !activityPoints.Any())
@@ -89,7 +89,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 Log.Debug($"Sprint duration = {sprintDuration} secs");
                 if (sprintDuration >= _minSprintTime)
                 {
-                    var sprint = new Sprint
+                    var sprint = new Interval
                     {
                         StartTime = sprintStartTime,
                         EndTime = sprintEndTime,
