@@ -55,7 +55,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 
             // Calcular medias móviles para diferentes ventanas de tiempo
             Log.Info("Calculating moving averages...");
-            var powerModels = AveragePowerCalculator.CalculateMovingAverages(remainingPoints, _windowSize, _intervalContainer);
+            var powerModels = PowerMetricsCalculator.CalculateMovingAverages(remainingPoints, _windowSize, _intervalContainer);
             Log.Debug($"Generated {powerModels.Count} power models");
             var intervals = new List<Interval>();
 
@@ -154,7 +154,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             return intervals;
         }
 
-        private bool IsIntervalStart(AveragePowerModel point, float cvThreshold, float rangeThreshold, float maxAvgPower)
+        private bool IsIntervalStart(PowerMetrics point, float cvThreshold, float rangeThreshold, float maxAvgPower)
         {
             //Log.Debug($"Checking interval start at {point.PointDate}: CV={point.CoefficientOfVariation}, Range={point.RangePercent}");
 
@@ -163,7 +163,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                    point.AvrgPower <= maxAvgPower;
         }
 
-        private bool IsIntervalContinuation(AveragePowerModel point, float cvThreshold, float deviationThreshold)
+        private bool IsIntervalContinuation(PowerMetrics point, float cvThreshold, float deviationThreshold)
         {
             //Log.Debug($"Checking interval continuation at {point.PointDate}: CV={point.CoefficientOfVariation}, Deviation={point.DeviationFromReference}");
 

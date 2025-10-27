@@ -1,21 +1,21 @@
-using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionReader.Models;
+using CyclingTrainer.SessionAnalyzer.Models;
 using NLog;
 
 namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
-    internal static class AveragePowerCalculator
+    internal static class PowerMetricsCalculator
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        internal static List<AveragePowerModel> CalculateMovingAverages(List<FitnessData> points, int windowSize, IntervalContainer container)
+        internal static List<PowerMetrics> CalculateMovingAverages(List<FitnessData> points, int windowSize, IntervalContainer container)
         {
             if (points.Count < windowSize)
                 throw new Exception($"Point count ({points.Count}) is smaller than the window size {windowSize}");
             if (points == null || !points.Any() || windowSize <= 0)
-                    return new List<AveragePowerModel>();
+                    return new List<PowerMetrics>();
 
-            var result = new List<AveragePowerModel>();
+            var result = new List<PowerMetrics>();
             var powerValues = new Queue<int>();
             int min = int.MaxValue;
             int max = int.MinValue;
@@ -45,7 +45,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 float variance = (sumSquares / powerValues.Count) - (avg * avg);
                 float stdDev = (float)Math.Sqrt(Math.Max(0, variance));
 
-                result.Add(new AveragePowerModel(
+                result.Add(new PowerMetrics(
                     points[index - 1].Timestamp.GetDateTime(),
                     avg,
                     stdDev,
@@ -84,7 +84,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 float variance = (sumSquares / windowSize) - (avg * avg);
                 float stdDev = (float)Math.Sqrt(Math.Max(0, variance));
 
-                result.Add(new AveragePowerModel(
+                result.Add(new PowerMetrics(
                     points[index].Timestamp.GetDateTime(),
                     avg,
                     stdDev,

@@ -1,6 +1,4 @@
-using CyclingTrainer.SessionAnalyzer.Models;
-
-namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
+namespace CyclingTrainer.SessionAnalyzer.Models
 {
     internal class IntervalContainer
     {

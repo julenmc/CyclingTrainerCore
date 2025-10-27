@@ -8,5 +8,12 @@ namespace CyclingTrainer.SessionAnalyzer.Models
         public float AveragePower { get; set; }
         public float MaxPower { get; set; }
         public List<Interval>? Intervals { get; set; }
+
+        internal bool IsSubInterval(Interval potential)
+        {
+            return potential.StartTime >= this.StartTime &&
+                   potential.EndTime <= this.EndTime &&
+                   potential != this;
+        }
     }
 }

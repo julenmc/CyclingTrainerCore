@@ -90,8 +90,8 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             intervalContainer.Intervals.AddRange(tmp);
 
             // Integrar intervalos
-            IntervalsRefiner refiner = new IntervalsRefiner(fitnessDataContainer, powerZones, thresholds);
-            refiner.Refine(intervalContainer.Intervals);
+            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer, powerZones, thresholds);
+            refiner.Refine();
 
             Log.Info($"Interval search completed. Found {intervalContainer.Intervals.Count} main intervals");
             return intervalContainer.Intervals;

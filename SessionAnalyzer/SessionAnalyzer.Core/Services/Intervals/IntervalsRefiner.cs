@@ -11,34 +11,199 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private List<CoreModels.Zone> _powerZones;
-        private FitnessDataContainer _container;
+        private IntervalContainer _intervalContainer;
+        private FitnessDataContainer _fitnessDataContainer;
         private Thresholds? _thresholds;
 
-        internal IntervalsRefiner(FitnessDataContainer container, List<CoreModels.Zone> powerZones, Thresholds? thresholds = null)
+        internal class MergeExpection : Exception
         {
-            _container = container;
+            internal MergeExpection(string message) : base(message) { }
+        }
+
+        internal IntervalsRefiner(IntervalContainer intervalContainer, FitnessDataContainer fitnessDataContainer, List<CoreModels.Zone> powerZones, Thresholds? thresholds = null)
+        {
+            _intervalContainer = intervalContainer;
+            _fitnessDataContainer = fitnessDataContainer;
             _powerZones = powerZones;
             _thresholds = thresholds;
         }
 
-        internal void Refine(List<Interval> intervals)
+        /// <summary>
+        /// Refines the intervals from the given container <see cref="IntervalContainer"/>
+        /// </summary>
+        /// <remarks>
+        /// This method will handle the collisions between the intervals of the container and will integrate 
+        /// sub-intervals in the interval that they belong
+        /// </remarks>
+        internal void Refine()
         {
-            Log.Debug($"Checking relations of {intervals.Count} intervals...");
+            HandleCollisions();
+            HandleIntegrations(_intervalContainer.Intervals);
+        }
 
-            intervals.Sort((a, b) => b.TimeDiff.CompareTo(a.TimeDiff));
+        private void HandleCollisions()
+        {
+            // It's crucial to sort the intervals in choronological order for the DoIntervalsCollide method
+            _intervalContainer.Intervals.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
 
+            for (int i = 0; i < _intervalContainer.Intervals.Count; i++)
+            {
+                _intervalContainer.Intervals[i].Intervals = new List<Interval>();
+                for (int j = i + 1; j < _intervalContainer.Intervals.Count; j++)
+                {
+                    if (DoIntervalsCollide(_intervalContainer.Intervals[i], _intervalContainer.Intervals[j]))
+                    {
+                        Log.Debug($"Collision between:" +
+                                  $"interval {_intervalContainer.Intervals[i].StartTime.TimeOfDay}-{_intervalContainer.Intervals[i].EndTime.TimeOfDay} ({_intervalContainer.Intervals[i].TimeDiff} s) at {_intervalContainer.Intervals[i].AveragePower} W " +
+                                  $"and interval {_intervalContainer.Intervals[j].StartTime.TimeOfDay}-{_intervalContainer.Intervals[j].EndTime.TimeOfDay} ({_intervalContainer.Intervals[j].TimeDiff} s) at {_intervalContainer.Intervals[j].AveragePower} W");
+
+                        try
+                        {
+                            Interval merged = MergeIntervals(_intervalContainer.Intervals[i], _intervalContainer.Intervals[j]);
+                            // _intervalContainer.Intervals[i] = merged;
+                            _intervalContainer.Intervals.Insert(j, merged); // Inserted before the second interval to mantain the chronological order
+                            j++;                                            // Merged interval is inserted before the second, so j must be incremented so it doesn't compare the same intervals 
+                        }
+                        catch (MergeExpection ex)
+                        {
+                            Log.Debug($"Intervals can't be merged because: {ex.Message}");
+                            // Trim interval with lower priority
+                            if (_intervalContainer.Intervals[i].AveragePower < _intervalContainer.Intervals[j].AveragePower)
+                            {
+                                DateTime newEndTime = _intervalContainer.Intervals[j].StartTime.AddSeconds(-1);
+                                _intervalContainer.Intervals[i] = GenerateInterval(_intervalContainer.Intervals[i].StartTime, newEndTime);
+                                Log.Debug($"Interval has been shortened to: {_intervalContainer.Intervals[i].StartTime.TimeOfDay}-{_intervalContainer.Intervals[i].EndTime.TimeOfDay} ({_intervalContainer.Intervals[i].TimeDiff} s) at {_intervalContainer.Intervals[i].AveragePower} W");
+                            }
+                            else
+                            {
+                                DateTime newStartTime = _intervalContainer.Intervals[i].EndTime.AddSeconds(1);
+                                _intervalContainer.Intervals[j] = GenerateInterval(newStartTime, _intervalContainer.Intervals[j].EndTime);
+                                Log.Debug($"Interval has been shortened to: {_intervalContainer.Intervals[j].StartTime.TimeOfDay}-{_intervalContainer.Intervals[j].EndTime.TimeOfDay} ({_intervalContainer.Intervals[j].TimeDiff} s) at {_intervalContainer.Intervals[j].AveragePower} W");
+                            }
+                        }
+                        catch { throw; }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Merges two intervals
+        /// </summary>
+        /// <remarks>
+        /// Attention: one interval can't be the others sub-interval. Intervals have to be in chronological order
+        /// </remarks>
+        private Interval MergeIntervals(Interval interval1, Interval interval2)
+        {
+            if (interval1.StartTime > interval2.StartTime)
+            {
+                throw new Exception("Intervals aren't in chonological order");
+            }
+            // Initial check if can be merged
+            float defaultMaRel = interval1.TimeDiff switch
+            {
+                >= IntervalTimes.LongIntervalMinTime => IntervalSearchValues.LongIntervals.Default.MaRel,
+                >= IntervalTimes.MediumIntervalMinTime => IntervalSearchValues.MediumIntervals.Default.MaRel,
+                _ => IntervalSearchValues.ShortIntervals.Default.MaRel
+            };
+            float maRelThr = _thresholds != null ? _thresholds.MaRel : defaultMaRel;
+            float allowedDeviation = interval1.AveragePower * maRelThr;
+            if (Math.Abs(interval1.AveragePower - interval2.AveragePower) > allowedDeviation)
+            {
+                throw new MergeExpection($"Average deviation is too high: {interval2.AveragePower} vs {interval1.AveragePower}, where allowed is {allowedDeviation}");
+            }
+
+            // Once checked proceed with merge
+            DateTime startTime = interval1.StartTime;
+            DateTime endTime = interval2.EndTime;
+            Interval merged = GenerateInterval(startTime, endTime);
+            Log.Debug($"Interval has been extended to: {merged.StartTime.TimeOfDay}-{merged.EndTime.TimeOfDay} ({merged.TimeDiff} s) at {merged.AveragePower} W");
+
+            if (interval1.TimeDiff > interval2.TimeDiff)    // First interval is longer
+            {
+                merged.Intervals?.AddRange(interval1.Intervals ?? []);
+            }
+            else    // Second interval is longer
+            {
+                merged.Intervals?.AddRange(interval2.Intervals ?? []);
+            }
+
+            return merged;
+        }
+
+        private Interval GenerateInterval(DateTime startTime, DateTime endTime)
+        {
+            var remainingPoints = _fitnessDataContainer.FitnessData;
+            var points = remainingPoints
+                .Where(p =>
+                {
+                    var timestamp = p.Timestamp.GetDateTime();
+                    return timestamp >= startTime && timestamp <= endTime;
+                })
+                .ToList();
+
+            if (!points.Any())
+            {
+                throw new Exception("No points detected in the merged interval");
+            }
+
+            Interval interval = new Interval
+            {
+                StartTime = startTime,
+                EndTime = endTime,
+                TimeDiff = (int)(endTime - startTime).TotalSeconds + 1,
+                AveragePower = (float)points.Average(p => p.Stats.Power ?? 0),
+            };
+            interval.Intervals = new List<Interval>();
+
+            return interval;
+        }
+
+        // It's crucial to sort the intervals in choronological order so this method works
+        private static bool DoIntervalsCollide(Interval interval1, Interval interval2)
+        {
+            if (interval1.StartTime > interval2.StartTime)
+            {
+                throw new Exception($"Interval must be given in chronological order. Actual: first interval => {interval1.StartTime.TimeOfDay}, second interval => {interval2.StartTime.TimeOfDay}");
+            }
+            if (interval1.StartTime == interval2.StartTime) return false;
+            return interval2.StartTime < interval1.EndTime && interval2.EndTime > interval1.EndTime;
+        }
+        
+        private static void HandleIntegrations(List<Interval> intervals)
+        {
+            void HandleSubInterval(Interval parent, Interval child)
+            {
+                string info = "";
+                if (child.AveragePower < parent.AveragePower)
+                    info = "LessPower";
+                else
+                {
+                    info = "SubInterval";
+                    parent.Intervals?.Add(child);
+                }
+                Log.Debug($"{info} between: parent interval {parent.StartTime.TimeOfDay}-{parent.EndTime.TimeOfDay} ({parent.TimeDiff} s) at {parent.AveragePower} W " +
+                            $"and child interval {child.StartTime.TimeOfDay}-{child.EndTime.TimeOfDay} ({child.TimeDiff} s) at {child.AveragePower} W");
+            }
+            
             for (int i = 0; i < intervals.Count; i++)
             {
-                var longInterval = intervals[i];
-                longInterval.Intervals = new List<Interval>();
+                if (intervals[i].Intervals == null)
+                {
+                    intervals[i].Intervals = new List<Interval>();
+                }
                 for (int j = i + 1; j < intervals.Count;)
                 {
-                    var shortInterval = intervals[j];
-
-                    var result = CheckTwoIntervalsRelation(ref longInterval, ref shortInterval);
-                    intervals[i] = longInterval;
-                    if (result)
+                    if (intervals[i].IsSubInterval(intervals[j]))
+                    {
+                        HandleSubInterval(intervals[i], intervals[j]);
                         intervals.RemoveAt(j);
+                    }
+                    else if (intervals[j].IsSubInterval(intervals[i]))
+                    {
+                        HandleSubInterval(intervals[j], intervals[i]);
+                        intervals.RemoveAt(i);
+                    }
                     else
                         j++;
                 }
@@ -52,316 +217,10 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 {
                     Log.Debug($"Integration of interval at {interval.StartTime.TimeOfDay} ({interval.TimeDiff}s) to be started...");
                     List<Interval> aux = interval.Intervals;    // IDK why
-                    this.Refine(aux);
+                    HandleIntegrations(aux);
                     interval.Intervals = aux;
                 }
             }
-
-            intervals.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
-        }
-
-        private bool CheckTwoIntervalsRelation(ref Interval longInterval, ref Interval shortInterval)
-        {
-            bool delete = false;
-            string info = "";
-
-            if (IsSubInterval(longInterval, shortInterval))
-            {
-                delete = true;
-                if (IntervalsUtils.AreEqual(longInterval, shortInterval))
-                    info = "SameInterval";
-                else if (shortInterval.AveragePower < longInterval.AveragePower)
-                    info = "LessPower";
-                else
-                {
-                    info = "SubInterval";
-                    longInterval.Intervals?.Add(shortInterval);
-                }
-                Log.Debug($"{info} between: interval {longInterval.StartTime.TimeOfDay}-{longInterval.EndTime.TimeOfDay} ({longInterval.TimeDiff} s) at {longInterval.AveragePower} W and interval {shortInterval.StartTime.TimeOfDay}-{shortInterval.EndTime.TimeOfDay} ({shortInterval.TimeDiff} s) at {shortInterval.AveragePower} W");
-            }
-            else if (DoIntervalsCollide(longInterval, shortInterval))
-            {
-                Log.Debug($"Collision between: interval {longInterval.StartTime.TimeOfDay}-{longInterval.EndTime.TimeOfDay} ({longInterval.TimeDiff} s) at {longInterval.AveragePower} W and interval {shortInterval.StartTime.TimeOfDay}-{shortInterval.EndTime.TimeOfDay} ({shortInterval.TimeDiff} s) at {shortInterval.AveragePower} W");
-
-                // Check if intervals can be merged
-                Interval? merged = null;
-                try
-                {
-                    merged = MergeIntervals(longInterval, shortInterval);
-                }
-                catch
-                {
-                    Log.Debug($"Intervals can't be merged because their average power delta is too high");
-                }
-
-                if (merged != null)
-                {
-                    longInterval = merged;
-                    delete = true;
-                    Log.Debug($"Interval has been extended to: {longInterval.StartTime.TimeOfDay}-{longInterval.EndTime.TimeOfDay} ({longInterval.TimeDiff} s) at {longInterval.AveragePower} W");
-                }
-                else if (shortInterval.StartTime < longInterval.StartTime)
-                {
-                    delete = HandleCollisionAtStart(longInterval, ref shortInterval);
-                }
-                else
-                {
-                    delete = HandleCollisionAtEnd(longInterval, ref shortInterval);
-                }
-            }
-
-            return delete;
-        }
-
-        private Interval MergeIntervals(Interval longInterval, Interval shortInterval)
-        {
-            // Initial check if can be merged
-            float defaultMaRel = longInterval.TimeDiff switch
-            {
-                >= IntervalTimes.LongIntervalMinTime => IntervalSearchValues.LongIntervals.Default.MaRel,
-                >= IntervalTimes.MediumIntervalMinTime => IntervalSearchValues.MediumIntervals.Default.MaRel,
-                _ => IntervalSearchValues.ShortIntervals.Default.MaRel
-            };
-            float maRelThr = _thresholds != null ? _thresholds.MaRel : defaultMaRel;
-            float allowedDeviation = longInterval.AveragePower * maRelThr;
-            if (Math.Abs(longInterval.AveragePower - shortInterval.AveragePower) > allowedDeviation)
-            {
-                throw new Exception("Deviation too high");
-            }
-
-            // Once check proceed with merge
-            DateTime startTime = longInterval.StartTime;
-            DateTime endTime = longInterval.EndTime;
-            if (longInterval.StartTime > shortInterval.StartTime)
-            {
-                // Collision before start
-                startTime = shortInterval.StartTime;
-            }
-            else
-            {
-                // Collision after end
-                endTime = shortInterval.EndTime;
-            }
-            var remainingPoints = _container.FitnessData;
-            var points = remainingPoints
-                .Where(p =>
-                {
-                    var timestamp = p.Timestamp.GetDateTime();
-                    return timestamp >= startTime && timestamp <= endTime;
-                })
-                .ToList();
-
-            if (!points.Any())
-            {
-                return longInterval;    // Should not be here. If so, return the big interval and continue
-            }
-
-            Interval merged = new Interval
-            {
-                StartTime = startTime,
-                EndTime = endTime,
-                TimeDiff = (int)(endTime - startTime).TotalSeconds + 1,
-                AveragePower = (float)points.Average(p => p.Stats.Power ?? 0),
-                Intervals = longInterval.Intervals
-            };
-
-            // Add short interval as sub-interval
-            merged.Intervals?.Add(shortInterval);
-            return merged;
-        }
-
-        private bool HandleCollisionAtStart(Interval longInterval, ref Interval shortInterval)
-        {
-            bool delete = false;
-
-            Interval oldChild = new Interval
-            {
-                StartTime = shortInterval.StartTime,
-                EndTime = shortInterval.EndTime
-            };
-            GenerateNewIntervalBeforeCollitionInStart(longInterval, ref shortInterval);  // Pass reference before collision cuz might still be an interval
-
-            if (!IntervalsUtils.IsConsideredAnInterval(shortInterval, _powerZones))
-            {
-                delete = true;
-                Log.Debug($"Interval will not be saved after modification");
-            }
-            else
-            {
-                Log.Debug($"Interval will be saved after modification");
-            }
-
-            Interval newChild = GenerateNewIntervalAfterCollitionInStart(longInterval, oldChild);       // After collision should be a new interval, no reference
-            if (IntervalsUtils.IsConsideredAnInterval(newChild, _powerZones))   // TODO: check if child's power is lower than parent's
-            {
-                longInterval.Intervals?.Add(newChild);
-                Log.Debug($"New subInterval added: startTime {newChild.StartTime.TimeOfDay} with {newChild.AveragePower} W in {newChild.TimeDiff} s");
-            }
-            return delete;
-        }
-
-        private bool HandleCollisionAtEnd(Interval longInterval, ref Interval shortInterval)
-        {
-            bool delete = false;
-            Interval oldChild = new Interval
-            {
-                StartTime = shortInterval.StartTime,
-                EndTime = shortInterval.EndTime
-            };
-            Interval newChild = GenerateNewIntervalBeforeCollitionInEnd(longInterval, oldChild);  // Before collision should be a new interval, no reference
-
-            if (IntervalsUtils.IsConsideredAnInterval(newChild, _powerZones))   // TODO: check if child's power is lower than parent's
-            {
-                longInterval.Intervals?.Add(newChild);
-                Log.Debug($"New subInterval added: startTime {newChild.StartTime.TimeOfDay} with {newChild.AveragePower} W in {newChild.TimeDiff} s");
-            }
-
-            GenerateNewIntervalAfterCollitionInEnd(longInterval, ref shortInterval);       // Pass reference after collision cuz might still be an interval
-            if (!IntervalsUtils.IsConsideredAnInterval(shortInterval, _powerZones))
-            {
-                delete = true;
-                Log.Debug($"Interval will not be saved after modification");
-            }
-            else
-            {
-                Log.Debug($"Interval will be saved after modification");
-            }
-            return delete;
-        }
-
-        private void GenerateNewIntervalBeforeCollitionInStart(Interval parent, ref Interval child)
-        {
-            var newEndTime = parent.StartTime.AddSeconds(-1);
-            var startTime = child.StartTime;  // Guardar en variable local para usar en lambda
-
-            var remainingPoints = _container.FitnessData;
-            var points = remainingPoints
-                .Where(p =>
-                {
-                    var timestamp = p.Timestamp.GetDateTime();
-                    return timestamp >= startTime && timestamp <= newEndTime;
-                })
-                .ToList();
-
-            if (!points.Any())
-            {
-                child.TimeDiff = 0;
-                return;
-            }
-
-            child.EndTime = newEndTime;
-            child.TimeDiff = (int)(newEndTime - startTime).TotalSeconds + 1;
-            child.AveragePower = (float)points.Average(p => p.Stats.Power ?? 0);
-
-            Log.Debug($"Collision adjusted: interval now ends at {newEndTime.TimeOfDay}, new duration={child.TimeDiff}s, new avgPower={child.AveragePower}W.");
-            return;
-        }
-
-        private Interval GenerateNewIntervalAfterCollitionInStart(Interval parent, Interval child)
-        {
-            var endTime = child.EndTime;         // Save in variable to use in lambda
-            var newStartTime = parent.StartTime;
-
-            Interval ret = new Interval{
-                StartTime = child.StartTime,
-                EndTime = child.EndTime
-            };
-
-            var remainingPoints = _container.FitnessData;
-            var points = remainingPoints
-                .Where(p =>
-                {
-                    var timestamp = p.Timestamp.GetDateTime();
-                    return timestamp >= newStartTime && timestamp <= endTime;
-                })
-                .ToList();
-
-            if (!points.Any())
-            {
-                ret.TimeDiff = 0;
-                return ret;
-            }
-
-            ret.StartTime = newStartTime;
-            ret.TimeDiff = (int)(endTime - newStartTime).TotalSeconds + 1;
-            ret.AveragePower = (float)points.Average(p => p.Stats.Power ?? 0);
-
-            Log.Debug($"New possible child interval starts at {newStartTime.TimeOfDay}, new duration={ret.TimeDiff}s, new avgPower={ret.AveragePower}W.");
-            return ret;
-        }
-
-        private Interval GenerateNewIntervalBeforeCollitionInEnd(Interval parent, Interval child)
-        {
-            var newEndTime = parent.EndTime;
-            var startTime = child.StartTime;  // Guardar en variable local para usar en lambda
-
-            Interval ret = new Interval{
-                StartTime = child.StartTime,
-                EndTime = child.EndTime
-            };
-            var remainingPoints = _container.FitnessData;
-            var points = remainingPoints
-                .Where(p =>
-                {
-                    var timestamp = p.Timestamp.GetDateTime();
-                    return timestamp >= startTime && timestamp <= newEndTime;
-                })
-                .ToList();
-
-            if (!points.Any())
-            {
-                ret.TimeDiff = 0;
-                return ret;
-            }
-
-            ret.EndTime = newEndTime;
-            ret.TimeDiff = (int)(newEndTime - startTime).TotalSeconds + 1;
-            ret.AveragePower = (float)points.Average(p => p.Stats.Power ?? 0);
-
-            Log.Debug($"New possible child interval starts at {startTime.TimeOfDay}, new duration={ret.TimeDiff}s, new avgPower={ret.AveragePower}W.");
-            return ret;
-        }
-
-        private void GenerateNewIntervalAfterCollitionInEnd(Interval parent, ref Interval child)
-        {
-            var endTime = child.EndTime;         // Save in variable to use in lambda
-            var newStartTime = parent.EndTime.AddSeconds(1);
-
-            Interval ret = child;
-
-            var remainingPoints = _container.FitnessData;
-            var points = remainingPoints
-                .Where(p =>
-                {
-                    var timestamp = p.Timestamp.GetDateTime();
-                    return timestamp >= newStartTime && timestamp <= endTime;
-                })
-                .ToList();
-
-            if (!points.Any())
-            {
-                ret.TimeDiff = 0;
-                return;
-            }
-
-            ret.StartTime = newStartTime;
-            ret.TimeDiff = (int)(endTime - newStartTime).TotalSeconds + 1;
-            ret.AveragePower = (float)points.Average(p => p.Stats.Power ?? 0);
-
-            Log.Debug($"Collision adjusted: interval now starts at {newStartTime.TimeOfDay}, new duration={child.TimeDiff}s, new avgPower={child.AveragePower}W.");
-        }
-
-        private static bool IsSubInterval(Interval parent, Interval child)
-        {
-            return child.StartTime >= parent.StartTime &&
-                   child.EndTime <= parent.EndTime &&
-                   child != parent;
-        }
-
-        private static bool DoIntervalsCollide(Interval parent, Interval child)
-        {
-            return (child.StartTime < parent.StartTime && child.EndTime > parent.StartTime) ||
-                   (child.StartTime < parent.EndTime && child.EndTime > parent.EndTime);
         }
     }
 }

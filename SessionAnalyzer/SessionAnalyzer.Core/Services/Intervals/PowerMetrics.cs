@@ -1,6 +1,6 @@
 namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
-    internal class AveragePowerModel
+    internal class PowerMetrics
     {
         internal DateTime PointDate { get; set; }
         internal float AvrgPower { get; set; }
@@ -10,7 +10,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
         internal float RangePercent => MaxMinDelta / AvrgPower;
         internal float DeviationFromReference { get; set; }
 
-        internal AveragePowerModel(DateTime pointDate, float avgPower, float deviation, int maxMinDelta)
+        internal PowerMetrics(DateTime pointDate, float avgPower, float deviation, int maxMinDelta)
         {
             PointDate = pointDate;
             AvrgPower = avgPower;
