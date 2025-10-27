@@ -8,8 +8,6 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
     [TestClass]
     public sealed class SprintTest
     {
-        List<FitnessData> _fitnessData = default!;
-
         [TestInitialize]
         public void SetUp()
         {
@@ -32,14 +30,14 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = 5, Power = 550, HearRate = 150, Cadence = 90},
                 new FitnessSection{ Time = 10, Power = 150, HearRate = 180, Cadence = 95},
             };
-            _fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            SprintService.SetConfiguration(5, 550, 500);
-            SprintService.AnalyzeActivity(_fitnessData);
-            List<Interval> sprints = IntervalRepository.GetSprints();
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer container = new FitnessDataContainer(fitnessData);
+            SprintService service = new SprintService(container, 5, 550, 500);
+            List<Interval> sprints = service.SearchSprints();
             Assert.AreEqual(1, sprints.Count);
             Assert.AreEqual(575, sprints.First().AveragePower);
             Assert.AreEqual(10, sprints.First().TimeDiff);
-            List<FitnessData> remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            List<FitnessData> remainingPoints = container.FitnessData;
             Assert.AreEqual(20, remainingPoints.Count);
         }
 
@@ -54,14 +52,14 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = 5, Power = 550, HearRate = 150, Cadence = 90},
                 new FitnessSection{ Time = 10, Power = 150, HearRate = 180, Cadence = 95},
             };
-            _fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            SprintService.SetConfiguration(5, 550, 500);
-            SprintService.AnalyzeActivity(_fitnessData);
-            List<Interval> sprints = IntervalRepository.GetSprints();
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer container = new FitnessDataContainer(fitnessData);
+            SprintService service = new SprintService(container, 5, 550, 500);
+            List<Interval> sprints = service.SearchSprints();
             Assert.AreEqual(1, sprints.Count);
             Assert.AreEqual((float)5750/11, sprints.First().AveragePower);
             Assert.AreEqual(11, sprints.First().TimeDiff);
-            List<FitnessData> remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            List<FitnessData> remainingPoints = container.FitnessData;
             Assert.AreEqual(20, remainingPoints.Count);
         }
 
@@ -76,14 +74,14 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = 5, Power = 550, HearRate = 150, Cadence = 90},
                 new FitnessSection{ Time = 10, Power = 150, HearRate = 180, Cadence = 95},
             };
-            _fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            SprintService.SetConfiguration(5, 550, 500);
-            SprintService.AnalyzeActivity(_fitnessData);
-            List<Interval> sprints = IntervalRepository.GetSprints();
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer container = new FitnessDataContainer(fitnessData);
+            SprintService service = new SprintService(container, 5, 550, 500);
+            List<Interval> sprints = service.SearchSprints();
             Assert.AreEqual(2, sprints.Count);
             Assert.AreEqual(600, sprints.First().AveragePower);
             Assert.AreEqual(550, sprints.Last().AveragePower);
-            List<FitnessData> remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            List<FitnessData> remainingPoints = container.FitnessData;
             Assert.AreEqual(22, remainingPoints.Count);
         }
 
@@ -92,7 +90,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         {
             try
             {
-                SprintService.SetConfiguration(-1, 550, 500);
+                FitnessDataContainer container = new FitnessDataContainer(new List<FitnessData>());
+                SprintService service = new SprintService(container, -1, 550, 500);
                 Assert.Fail();
             }
             catch (Exception ex)
@@ -106,7 +105,8 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         {
             try
             {
-                SprintService.SetConfiguration(5, 500, 550);
+                FitnessDataContainer container = new FitnessDataContainer(new List<FitnessData>());
+                SprintService service = new SprintService(container, -1, 500, 550);
                 Assert.Fail();
             }
             catch (Exception ex)

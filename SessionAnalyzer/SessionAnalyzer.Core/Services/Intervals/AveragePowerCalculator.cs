@@ -1,3 +1,4 @@
+using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionReader.Models;
 using NLog;
 
@@ -7,7 +8,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        internal static List<AveragePowerModel> CalculateMovingAverages(List<FitnessData> points, int windowSize)
+        internal static List<AveragePowerModel> CalculateMovingAverages(List<FitnessData> points, int windowSize, IntervalContainer container)
         {
             if (points.Count < windowSize)
                 throw new Exception($"Point count ({points.Count}) is smaller than the window size {windowSize}");
@@ -57,7 +58,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             {
                 // Check if the session has been stopped
                 int timeDiff = (int)(points[index].Timestamp.GetDateTime() - points[index - 1].Timestamp.GetDateTime()).TotalSeconds;
-                if (timeDiff > 1 && !IntervalRepository.IsTheGapASprint(points[index].Timestamp.GetDateTime()))
+                if (timeDiff > 1 && !container.IsTheGapASprint(points[index].Timestamp.GetDateTime()))
                 {
                     Log.Debug($"Session stopped at {points[index - 1].Timestamp.GetDateTime().TimeOfDay} for {timeDiff-1} seconds");
                     goto createWindow;

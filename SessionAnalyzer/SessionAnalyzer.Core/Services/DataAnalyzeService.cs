@@ -1,7 +1,6 @@
 ﻿using CyclingTrainer.Core.Models;
 using NLog;
 using CyclingTrainer.SessionReader.Models;
-using CyclingTrainer.SessionReader.Repository;
 using CyclingTrainer.TrainingDatabase.Core.Repository;
 
 using static CyclingTrainer.Core.Constants.PowerCurveConstants;
@@ -15,19 +14,19 @@ namespace CyclingTrainer.SessionAnalyzer.Services
 
         private const int MaxTimeDiff = 3000;
 
-        public static Session AnalyzeData()
-        {
-            List<FitnessData> fitnessData = SessionRepository.GetFitnessData();
-            SessionRepository.UpdateAnalyzedData(AnalyzeFitnessData(fitnessData));
-            return SessionRepository.GetSession();
-        }
+        // public static Session AnalyzeData()
+        // {
+        //     List<FitnessData> fitnessData = SessionReader.Repository.SessionReader.GetFitnessData();
+        //     SessionReader.Repository.SessionReader.UpdateAnalyzedData(AnalyzeFitnessData(fitnessData));
+        //     return SessionReader.Repository.SessionReader.GetSession();
+        // }
 
-        public static Session AnalyzeData(int cyclistId)
-        {
-            List<FitnessData> fitnessData = SessionRepository.GetFitnessData();
-            SessionRepository.UpdateAnalyzedData(AnalyzeFitnessData(fitnessData, CyclistsRepository.Get(cyclistId)?.FitnessData));
-            return SessionRepository.GetSession();
-        }
+        // public static Session AnalyzeData(int cyclistId)
+        // {
+        //     List<FitnessData> fitnessData = SessionReader.Repository.SessionReader.GetFitnessData();
+        //     SessionReader.Repository.SessionReader.UpdateAnalyzedData(AnalyzeFitnessData(fitnessData, CyclistsRepository.Get(cyclistId)?.FitnessData));
+        //     return SessionReader.Repository.SessionReader.GetSession();
+        // }
 
         internal static AnalyzedData AnalyzeFitnessData(List<FitnessData> fitnessData, CyclistFitnessData? cyclistData = null)
         {

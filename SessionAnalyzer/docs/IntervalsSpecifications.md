@@ -54,17 +54,3 @@ Tal y como se ha indicado al principio: un intervalo puede estar compuesto por v
 
 > Nota: Un sub-intervalo puede contener sus propios sub-intervalos.
 > Nota: Un sub-intervalo nunca tendrá una potencia media menor que su superior.
-
-## Structure
-Para el correcto funcionamiento de este servicio se utilizarán los siguientes elementos:
-1. Modelos:
-    1. [`Interval`](../SessionAnalyzer.Core/Models/Interval.cs): Modelo público con la información sobre un intervalo.
-    2. [`AveragePowerModel`](../SessionAnalyzer.Core/Services/Intervals/AveragePowerModel.cs): Modelo propio del servicio que sirve para guardar los datos calculados (potencia media, desviación, rango...).
-2. Repositorio estático [`IntervalRepository`](../SessionAnalyzer.Core/Services/Intervals/IntervalRepository.cs), que sirve para alamcenar la información que vayan a compartir diferentes clases del servicio. Se resetearía cada vez que se vaya a hacer un nuevo cálculo.
-3. Servicios:
-    1. [`IntervalsService`](../SessionAnalyzer.Core/Services/Intervals/IntervalsService.cs): Clase principal de la búsqueda de intervalos. Se encarga de llevar la lógica principal del proceso.
-    2. [`SprintService`](../SessionAnalyzer.Core/Services/Intervals/SprintService.cs): Servicio estático de la búsqueda de sprints. Se encarga de buscarlos y eliminarlos de los datos de potencia (así facilita la búsqueda de intervalos).
-    3. [`AveragePowerCalculator`](../SessionAnalyzer.Core/Services/Intervals/AveragePowerCalculator.cs): Servicio estático que se encarga del cálculo de toda la información necesaria (medias, desviaciones, rangos...) para seguir con la lógica de búsqueda.
-    4. [`IntervalsFinder´](../SessionAnalyzer.Core/Services/Intervals/IntervalsFinder.cs): Clase para realizar búsquedas por grupos.
-    5. [`IntervalsCleaner´](../SessionAnalyzer.Core/Services/Intervals/IntervalsCleaner.cs): Clase para realizar la limpieza de los intervalos (gestión de colisiones e integraciones de sub-intervalos).
-    6. [`IntervalsUtils´](../SessionAnalyzer.Core/Services/Intervals/IntervalsUtils.cs): Clase estática con herramientas comunes para la búsqueda y gestión de intervalos.

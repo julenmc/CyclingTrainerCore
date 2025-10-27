@@ -1,4 +1,5 @@
 using CoreModels = CyclingTrainer.Core.Models;
+using CyclingTrainer.SessionReader.Models;
 using CyclingTrainer.SessionAnalyzer.Constants;
 using CyclingTrainer.SessionAnalyzer.Models;
 using NLog;
@@ -10,10 +11,12 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private List<CoreModels.Zone> _powerZones;
+        private FitnessDataContainer _container;
         private Thresholds? _thresholds;
 
-        internal IntervalsRefiner(List<CoreModels.Zone> powerZones, Thresholds? thresholds = null)
+        internal IntervalsRefiner(FitnessDataContainer container, List<CoreModels.Zone> powerZones, Thresholds? thresholds = null)
         {
+            _container = container;
             _powerZones = powerZones;
             _thresholds = thresholds;
         }
@@ -53,6 +56,8 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                     interval.Intervals = aux;
                 }
             }
+
+            intervals.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
         }
 
         private bool CheckTwoIntervalsRelation(ref Interval longInterval, ref Interval shortInterval)
@@ -137,7 +142,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 // Collision after end
                 endTime = shortInterval.EndTime;
             }
-            var remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            var remainingPoints = _container.FitnessData;
             var points = remainingPoints
                 .Where(p =>
                 {
@@ -224,12 +229,12 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             return delete;
         }
 
-        private static void GenerateNewIntervalBeforeCollitionInStart(Interval parent, ref Interval child)
+        private void GenerateNewIntervalBeforeCollitionInStart(Interval parent, ref Interval child)
         {
             var newEndTime = parent.StartTime.AddSeconds(-1);
             var startTime = child.StartTime;  // Guardar en variable local para usar en lambda
 
-            var remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            var remainingPoints = _container.FitnessData;
             var points = remainingPoints
                 .Where(p =>
                 {
@@ -252,7 +257,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             return;
         }
 
-        private static Interval GenerateNewIntervalAfterCollitionInStart(Interval parent, Interval child)
+        private Interval GenerateNewIntervalAfterCollitionInStart(Interval parent, Interval child)
         {
             var endTime = child.EndTime;         // Save in variable to use in lambda
             var newStartTime = parent.StartTime;
@@ -262,7 +267,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 EndTime = child.EndTime
             };
 
-            var remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            var remainingPoints = _container.FitnessData;
             var points = remainingPoints
                 .Where(p =>
                 {
@@ -285,7 +290,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             return ret;
         }
 
-        private static Interval GenerateNewIntervalBeforeCollitionInEnd(Interval parent, Interval child)
+        private Interval GenerateNewIntervalBeforeCollitionInEnd(Interval parent, Interval child)
         {
             var newEndTime = parent.EndTime;
             var startTime = child.StartTime;  // Guardar en variable local para usar en lambda
@@ -294,7 +299,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 StartTime = child.StartTime,
                 EndTime = child.EndTime
             };
-            var remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            var remainingPoints = _container.FitnessData;
             var points = remainingPoints
                 .Where(p =>
                 {
@@ -317,14 +322,14 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             return ret;
         }
 
-        private static void GenerateNewIntervalAfterCollitionInEnd(Interval parent, ref Interval child)
+        private void GenerateNewIntervalAfterCollitionInEnd(Interval parent, ref Interval child)
         {
             var endTime = child.EndTime;         // Save in variable to use in lambda
             var newStartTime = parent.EndTime.AddSeconds(1);
 
             Interval ret = child;
 
-            var remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            var remainingPoints = _container.FitnessData;
             var points = remainingPoints
                 .Where(p =>
                 {

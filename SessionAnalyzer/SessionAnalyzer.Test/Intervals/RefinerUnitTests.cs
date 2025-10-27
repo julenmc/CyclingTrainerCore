@@ -17,7 +17,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
     /// The test follow the convention:
     /// <c>Scenario_ExpectedResult</c>.
     /// 
-    /// The repository <see cref="IntervalRepository"/> is locked with <see cref="SetUp"/> before 
+    /// The repository <see cref="FitnessDataContainer"/> is locked with <see cref="SetUp"/> before 
     /// each test and unlocked with <see cref="TestCleanup"/> after each test.
     /// </remarks>
     [TestClass]
@@ -53,8 +53,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = LongDefaultTime, Power = LongDefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            IntervalRepository.Clear();
-            IntervalRepository.SetFitnessData(fitnessData);
+            FitnessDataContainer container = new FitnessDataContainer(fitnessData);
 
             DateTime longStart = DefaultStartDate.AddSeconds(intervalDelay);
             List<Interval> intervals = new List<Interval>()
@@ -75,7 +74,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(container, PowerZones);
             refiner.Refine(intervals);
 
             Assert.AreEqual(1, intervals.Count);
@@ -104,8 +103,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = LongDefaultTime, Power = LongDefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            IntervalRepository.Clear();
-            IntervalRepository.SetFitnessData(fitnessData);
+            FitnessDataContainer container = new FitnessDataContainer(fitnessData);
 
             DateTime longStart = DefaultStartDate.AddSeconds(intervalDelay);
             List<Interval> intervals = new List<Interval>()
@@ -126,7 +124,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(container, PowerZones);
             refiner.Refine(intervals);
 
             Assert.AreEqual(2, intervals.Count);
@@ -154,8 +152,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = MediumDefaultTime, Power = MediumDefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            IntervalRepository.Clear();
-            IntervalRepository.SetFitnessData(fitnessData);
+            FitnessDataContainer container = new FitnessDataContainer(fitnessData);
 
             DateTime mediumStart = DefaultStartDate.AddSeconds(LongDefaultTime);
             List<Interval> intervals = new List<Interval>()
@@ -176,7 +173,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(container, PowerZones);
             refiner.Refine(intervals);
 
             Assert.AreEqual(1, intervals.Count);
@@ -205,8 +202,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new FitnessSection{ Time = ShortDefaultTime, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
-            IntervalRepository.Clear();
-            IntervalRepository.SetFitnessData(fitnessData);
+            FitnessDataContainer container = new FitnessDataContainer(fitnessData);
 
             DateTime mediumStart = DefaultStartDate.AddSeconds(LongDefaultTime);
             List<Interval> intervals = new List<Interval>()
@@ -227,7 +223,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(container, PowerZones);
             refiner.Refine(intervals);
 
             Assert.AreEqual(2, intervals.Count);

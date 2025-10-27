@@ -4,15 +4,17 @@ using NLog;
 
 namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 {
-    internal static class SprintService
+    internal class SprintService
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private static int _minSprintTime;
-        private static int _startTrigger;
-        private static int _endTrigger;
+        private readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private int _minSprintTime;
+        private int _startTrigger;
+        private int _endTrigger;
+        private FitnessDataContainer _container;
 
-        internal static void SetConfiguration(int minSprintTime, int startTrigger, int endTrigger)
+        internal SprintService(FitnessDataContainer container, int minSprintTime, int startTrigger, int endTrigger)
         {
+            _container = container;
             if (startTrigger <= endTrigger)
                 throw new ArgumentException("Start trigger must be greater than end trigger for hysteresis to work", nameof(startTrigger));
 
@@ -24,20 +26,10 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             _endTrigger = endTrigger;
         }
 
-        internal static void AnalyzeActivity(List<FitnessData> activityPoints)
+        internal List<Interval> SearchSprints()
         {
-            Log.Info($"Searching for sprints...");
-            if (activityPoints == null || !activityPoints.Any())
-                return;
-
-            IntervalRepository.SetFitnessData(activityPoints);
-            DetectSprints();
-            Log.Info($"Sprint search finished");
-        }
-
-        private static void DetectSprints()
-        {
-            var points = IntervalRepository.GetRemainingFitnessData();
+            List<Interval> sprints = new List<Interval>();
+            var points = _container.FitnessData;
             int i = 0;
 
             while (i < points.Count)
@@ -63,12 +55,12 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 while (i < points.Count)
                 {
                     var currentPower = points[i].Stats.Power ?? 0;
-                    
+
                     if (currentPower < _endTrigger)
                     {
                         Log.Debug($"Sprint might end at index {i}");
                         // Check if the next point continues as a sprint
-                        var nextPower = points[i+1].Stats.Power ?? 0;
+                        var nextPower = points[i + 1].Stats.Power ?? 0;
                         if (nextPower < _endTrigger)
                         {
                             Log.Debug($"Sprint ends at index {i}");
@@ -98,14 +90,19 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                         AveragePower = (float)powerSum / pointCount
                     };
 
-                    IntervalRepository.AddSprint(sprint);
+                    sprints.Add(sprint);
+                    // Remove sprint data points from fitness data
+                    _container.FitnessData.RemoveAll(data => 
+                        data.Timestamp.GetDateTime() >= sprint.StartTime && 
+                        data.Timestamp.GetDateTime() < sprint.EndTime);
                     Log.Debug($"New sprint detected! Duration: {sprintDuration} s. AvrPower: {sprint.AveragePower} W");
 
                     // Como el repositorio elimina los puntos del sprint, necesitamos obtener los puntos restantes
-                    points = IntervalRepository.GetRemainingFitnessData();
+                    points = _container.FitnessData;
                     i = 0;
                 }
             }
+            return sprints;
         }
     }
 }

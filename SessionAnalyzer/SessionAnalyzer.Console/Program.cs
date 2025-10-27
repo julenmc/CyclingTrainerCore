@@ -1,7 +1,7 @@
 ﻿using CoreModels = CyclingTrainer.Core.Models;
-using CyclingTrainer.SessionReader.Repository;
-using CyclingTrainer.SessionAnalyzer.Services;
 using CyclingTrainer.SessionAnalyzer.Services.Intervals;
+using CyclingTrainer.SessionReader.Models;
+using CyclingTrainer.SessionReader.Services;
 using Models = CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.Core.Models;
 
@@ -15,7 +15,7 @@ namespace CyclingTrainer.SessionAnalyzer.Console
         {
             Logger.Info("Start Session Analyzer Test");
 
-            SessionRepository.ReadRoute(@"Resources/19622171318_ACTIVITY.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
+            SessionContainer container = SessionReaderService.ReadRoute(@"Resources/19622171318_ACTIVITY.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
                                                                                 // Session session = DataAnalyzeService.AnalyzeData();
             List<CoreModels.Zone> powerZones = new List<CoreModels.Zone>{
                 new CoreModels.Zone { Id = 1, LowLimit = 0, HighLimit = 129},
@@ -26,7 +26,7 @@ namespace CyclingTrainer.SessionAnalyzer.Console
                 new CoreModels.Zone { Id = 6, LowLimit = 310, HighLimit = 379},
                 new CoreModels.Zone { Id = 7, LowLimit = 380, HighLimit = 2000}
             };
-            List<Models.Interval> intervals = IntervalsService.Search(SessionRepository.GetFitnessData(), powerZones);
+            List<Models.Interval> intervals = IntervalsService.Search(container.FitnessDataContainer.FitnessData, powerZones);
             LogIntervals(intervals);
 
             // IntervalsService.DetectionThresholds thr = new IntervalsService.DetectionThresholds

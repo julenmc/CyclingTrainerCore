@@ -12,12 +12,21 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private List<CoreModels.Zone> _powerZones;
+        private FitnessDataContainer _fitnessDataContainer;
+        private IntervalContainer _intervalContainer;
         private Thresholds? _thresholds;
         private int _windowSize;
         CoreModels.Zone _allowedPowerZone;
 
-        internal IntervalsFinder(List<CoreModels.Zone> powerZones, int windowSize, CoreModels.Zone allowedPowerZone, Thresholds? thresholds = null)
+        internal IntervalsFinder(FitnessDataContainer fitnessDataContainer,
+                                 IntervalContainer intervalContainer,
+                                 List<CoreModels.Zone> powerZones,
+                                 int windowSize,
+                                 CoreModels.Zone allowedPowerZone,
+                                 Thresholds? thresholds = null)
         {
+            _fitnessDataContainer = fitnessDataContainer;
+            _intervalContainer = intervalContainer;
             _powerZones = powerZones;
             _thresholds = thresholds;
             _windowSize = windowSize;
@@ -42,11 +51,11 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             Log.Debug($"Using thresholds: cvStart={cvStartThr}, cvFollow={cvFollowThr}, range={rangeThr}, maRel={maRelThr}. minPower={_allowedPowerZone.LowLimit}W, maxPower={_allowedPowerZone.HighLimit}W");
 
             // Obtener los datos restantes después de eliminar sprints
-            var remainingPoints = IntervalRepository.GetRemainingFitnessData();
+            var remainingPoints = _fitnessDataContainer.FitnessData;
 
             // Calcular medias móviles para diferentes ventanas de tiempo
             Log.Info("Calculating moving averages...");
-            var powerModels = AveragePowerCalculator.CalculateMovingAverages(remainingPoints, _windowSize);
+            var powerModels = AveragePowerCalculator.CalculateMovingAverages(remainingPoints, _windowSize, _intervalContainer);
             Log.Debug($"Generated {powerModels.Count} power models");
             var intervals = new List<Interval>();
 
@@ -73,7 +82,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 while (i < powerModels.Count)
                 {
                     int timeDiff = (i > 0) ? (int)(powerModels[i].PointDate - powerModels[i - 1].PointDate).TotalSeconds : 1;
-                    if (timeDiff > 1 && !IntervalRepository.IsTheGapASprint(powerModels[i].PointDate))
+                    if (timeDiff > 1 && !_intervalContainer.IsTheGapASprint(powerModels[i].PointDate))
                     {
                         Log.Debug($"Session stopped at {powerModels[i - 1].PointDate.TimeOfDay} for {timeDiff - _windowSize} seconds. Finishing interval");
                         sessionStopped = true;
@@ -190,7 +199,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             while (auxIndex < expandedStartPoints.Count)
             {
                 if ((int)(expandedStartPoints[auxIndex].Timestamp.GetDateTime() - expandedStartPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1 && 
-                    !IntervalRepository.IsTheGapASprint(expandedStartPoints[auxIndex].Timestamp.GetDateTime()))
+                    !_intervalContainer.IsTheGapASprint(expandedStartPoints[auxIndex].Timestamp.GetDateTime()))
                 {
                     expandedStartIdx = intervalStartIdx - (expandedStartPoints.Count - auxIndex) + 1;
                     expandedStartPoints = points.GetRange(expandedStartIdx, intervalStartIdx - expandedStartIdx + 1);
@@ -207,7 +216,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             while (auxIndex < expandedEndPoints.Count)
             {
                 if ((int)(expandedEndPoints[auxIndex].Timestamp.GetDateTime() - expandedEndPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1 && 
-                    !IntervalRepository.IsTheGapASprint(expandedEndPoints[auxIndex].Timestamp.GetDateTime()))
+                    !_intervalContainer.IsTheGapASprint(expandedEndPoints[auxIndex].Timestamp.GetDateTime()))
                 {
                     expandedEndIdx = auxIndex + intervalEndIdx - 1;
                     expandedEndPoints = points.GetRange(intervalEndIdx, expandedEndIdx - intervalEndIdx + 1);
