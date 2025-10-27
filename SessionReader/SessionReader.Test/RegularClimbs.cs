@@ -1,6 +1,6 @@
 ﻿using CyclingTrainer.Core.Models;
 using CyclingTrainer.SessionReader.Models;
-using CyclingTrainer.SessionReader.Repository;
+using CyclingTrainer.SessionReader.Services;
 using CyclingTrainer.SessionReader.Test.Mocks;
 
 namespace CyclingTrainer.SessionReader.Test
@@ -8,8 +8,6 @@ namespace CyclingTrainer.SessionReader.Test
     [TestClass]
     public class RegularClimbs
     {
-        Session session = default!;
-
         [TestInitialize]
         public void SetUp()
         {
@@ -32,8 +30,9 @@ namespace CyclingTrainer.SessionReader.Test
             points.Add(new SectorInfo(3000, 4000, 0, 0, 0));
             ReaderMock reader = new ReaderMock(points);
 
-            session = SessionRepository.AnalyzeRoute(reader);
-            RouteSections routeSections = SessionRepository.GetRouteData();
+            SessionContainer sessionContainer = SessionReaderService.AnalyzeRoute(reader);
+            Session session = sessionContainer.Session;
+            RouteSections routeSections = sessionContainer.RouteSections;
             Assert.AreEqual(4000, session.Distance);
             Assert.AreEqual(0, session.HeightDiff);
             Assert.AreEqual(0, routeSections.Climbs.Count);
@@ -49,8 +48,10 @@ namespace CyclingTrainer.SessionReader.Test
             points.Add(new SectorInfo(3000, 4000, 100, 100, 0));
             points.Add(new SectorInfo(4000, 4010, 100, 100, 0));
             ReaderMock reader = new ReaderMock(points);
-            session = SessionRepository.AnalyzeRoute(reader);
-            RouteSections routeSections = SessionRepository.GetRouteData();
+
+            SessionContainer sessionContainer = SessionReaderService.AnalyzeRoute(reader);
+            Session session = sessionContainer.Session;
+            RouteSections routeSections = sessionContainer.RouteSections;
 
             Assert.AreEqual(4010, session.Distance);
             Assert.AreEqual(200, session.HeightDiff);
@@ -75,8 +76,10 @@ namespace CyclingTrainer.SessionReader.Test
             points.Add(new SectorInfo(3000, 4000, 200, 200, 0));
             points.Add(new SectorInfo(4000, 4010, 200, 200, 0));
             ReaderMock reader = new ReaderMock(points);
-            session = SessionRepository.AnalyzeRoute(reader);
-            RouteSections routeSections = SessionRepository.GetRouteData();
+            
+            SessionContainer sessionContainer = SessionReaderService.AnalyzeRoute(reader);
+            Session session = sessionContainer.Session;
+            RouteSections routeSections = sessionContainer.RouteSections;
 
             Assert.AreEqual(4010, session.Distance);
             Assert.AreEqual(200, session.HeightDiff);
@@ -101,8 +104,10 @@ namespace CyclingTrainer.SessionReader.Test
             points.Add(new SectorInfo(3000, 4000, 300, 400, 0));
             points.Add(new SectorInfo(4000, 4010, 400, 401, 0));
             ReaderMock reader = new ReaderMock(points);
-            session = SessionRepository.AnalyzeRoute(reader);
-            RouteSections routeSections = SessionRepository.GetRouteData();
+            
+            SessionContainer sessionContainer = SessionReaderService.AnalyzeRoute(reader);
+            Session session = sessionContainer.Session;
+            RouteSections routeSections = sessionContainer.RouteSections;
 
             Assert.AreEqual(4010, session.Distance);
             Assert.AreEqual(401, session.HeightDiff);
@@ -127,8 +132,10 @@ namespace CyclingTrainer.SessionReader.Test
             points.Add(new SectorInfo(3000, 5000, 100, 100, 0));
             points.Add(new SectorInfo(5000, 6000, 100, 200, 0));
             ReaderMock reader = new ReaderMock(points);
-            session = SessionRepository.AnalyzeRoute(reader);
-            RouteSections routeSections = SessionRepository.GetRouteData();
+            
+            SessionContainer sessionContainer = SessionReaderService.AnalyzeRoute(reader);
+            Session session = sessionContainer.Session;
+            RouteSections routeSections = sessionContainer.RouteSections;
 
             Assert.AreEqual(6000, session.Distance);
             Assert.AreEqual(300, session.HeightDiff);
@@ -162,8 +169,10 @@ namespace CyclingTrainer.SessionReader.Test
             points.Add(new SectorInfo(2000, 2100, 200, 200, 0));
             ReaderMock reader = new ReaderMock(points);
 
-            session = SessionRepository.AnalyzeRoute(reader);
-            RouteSections routeSections = SessionRepository.GetRouteData();
+            SessionContainer sessionContainer = SessionReaderService.AnalyzeRoute(reader);
+            Session session = sessionContainer.Session;
+            RouteSections routeSections = sessionContainer.RouteSections;
+            
             Assert.AreEqual(2100, session.Distance);
             Assert.AreEqual(200, session.HeightDiff);
             Assert.AreEqual(1, routeSections.Climbs.Count);

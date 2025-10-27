@@ -1,6 +1,6 @@
 ﻿using CyclingTrainer.Core.Models;
 using CyclingTrainer.SessionReader.Models;
-using CyclingTrainer.SessionReader.Repository;
+using CyclingTrainer.SessionReader.Services;
 using CyclingTrainer.SessionReader.Test.Mocks;
 
 namespace CyclingTrainer.SessionReader.Test
@@ -8,8 +8,6 @@ namespace CyclingTrainer.SessionReader.Test
     [TestClass]
     public class IrregularClimbs
     {
-        Session session = default!;
-
         [TestInitialize]
         public void SetUp()
         {
@@ -34,11 +32,11 @@ namespace CyclingTrainer.SessionReader.Test
                 new SectorInfo(4000, 5000, 300, 400, 0)
             };
             ReaderMock reader = new ReaderMock(points);
-            session = SessionRepository.AnalyzeRoute(reader);
-            RouteSections routeData = SessionRepository.GetRouteData();
+            SessionContainer sessionContainer = SessionReaderService.AnalyzeRoute(reader);
+            RouteSections routeData = sessionContainer.RouteSections;
 
-            Assert.AreEqual(5000, session.Distance);
-            Assert.AreEqual(400, session.HeightDiff);
+            Assert.AreEqual(5000, sessionContainer.Session.Distance);
+            Assert.AreEqual(400, sessionContainer.Session.HeightDiff);
             Assert.AreEqual(1, routeData.Climbs.Count);
             Assert.AreEqual(1, routeData.Climbs[0].Id);
             Assert.AreEqual(5000, routeData.Climbs[0].Distance);
@@ -67,11 +65,11 @@ namespace CyclingTrainer.SessionReader.Test
                 new SectorInfo(8000, 9000, 200, 150, 0)
             };
             ReaderMock reader = new ReaderMock(points);
-            Session session = SessionRepository.AnalyzeRoute(reader);
-            RouteSections routeSections = SessionRepository.GetRouteData();
+            SessionContainer sessionContainer = SessionReaderService.AnalyzeRoute(reader);
+            RouteSections routeSections = sessionContainer.RouteSections;
 
-            Assert.AreEqual(9000, session.Distance);
-            Assert.AreEqual(370, session.HeightDiff);
+            Assert.AreEqual(9000, sessionContainer.Session.Distance);
+            Assert.AreEqual(370, sessionContainer.Session.HeightDiff);
             Assert.AreEqual(1, routeSections.Climbs.Count);
             Assert.AreEqual(1, routeSections.Climbs[0].Id);
             Assert.AreEqual(5000, routeSections.Climbs[0].Distance);

@@ -1,6 +1,5 @@
 ﻿using NLog;
 using CyclingTrainer.SessionReader.Models;
-using CyclingTrainer.SessionReader.Repository;
 using CyclingTrainer.SessionReader.Services;
 using static CyclingTrainer.SessionReader.Services.ISessionReader;
 
