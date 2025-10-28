@@ -11,20 +11,20 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             interval.TimeDiff switch
             {
                 >= IntervalTimes.LongIntervalMinTime =>
-                    interval.AveragePower > (powerZones
+                    interval.AveragePower >= (powerZones
                         .Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Long])?.LowLimit ?? 0),
                 >= IntervalTimes.MediumIntervalMinTime =>
-                    interval.AveragePower > (powerZones
+                    interval.AveragePower >= (powerZones
                         .Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium])?.LowLimit ?? 0),
                 >= IntervalTimes.IntervalMinTime =>
-                    interval.AveragePower > (powerZones
+                    interval.AveragePower >= (powerZones
                         .Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short])?.LowLimit ?? 0),
                 _ => false
             };
 
-        internal static bool AreEqual(Interval parent, Interval child)
+        internal static bool AreEqual(Interval interval1, Interval interval2)
         {
-            return (parent.StartTime == child.StartTime && parent.EndTime == child.EndTime);
+            return (interval1.StartTime == interval2.StartTime && interval1.EndTime == interval2.EndTime);
         }
     }
 }

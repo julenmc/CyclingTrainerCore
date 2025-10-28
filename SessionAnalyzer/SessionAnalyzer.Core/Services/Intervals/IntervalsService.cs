@@ -38,56 +38,21 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 
             // Short intervals
             Log.Info($"Starting short interval search...");
-            CoreModels.Zone zone = new CoreModels.Zone
-            {
-                HighLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short] + 2)?.HighLimit ?? 0,
-                LowLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Short])?.LowLimit ?? 0
-            };
-            IntervalsFinder finder = new IntervalsFinder(fitnessDataContainer, intervalContainer, powerZones, IntervalTimes.ShortWindowSize, zone, thresholds);
-            List<Interval> tmp = finder.Search();
-            Log.Info($"Short intervals search done. {tmp.Count} intervals found");
-            intervalContainer.Intervals.AddRange(tmp);
+            IntervalsFinder finder = new IntervalsFinder(fitnessDataContainer, intervalContainer, powerZones, IntervalSeachGroups.Short, thresholds);
+            int saved = finder.Search();
+            Log.Info($"Short intervals search done, {saved} saved");
 
             // Medium intervals
             Log.Info($"Starting medium interval search...");
-            zone = new CoreModels.Zone
-            {
-                HighLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium] + 2)?.HighLimit ?? 0,
-                LowLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Medium])?.LowLimit ?? 0
-            };
-            finder = new IntervalsFinder(fitnessDataContainer, intervalContainer, powerZones, IntervalTimes.MediumWindowSize, zone, thresholds);
-            tmp = finder.Search();
-
-            for (int i = 0; i < tmp.Count; i++)
-            {
-                if (IntervalAlreadyExists(tmp[i], intervalContainer.Intervals))
-                {
-                    Log.Debug($"Interval {tmp[i].StartTime.TimeOfDay}-{tmp[i].EndTime.TimeOfDay} at {tmp[i].AveragePower} already exists");
-                    tmp.RemoveAt(i);
-                }
-            }
-            Log.Info($"Medium intervals search done. {tmp.Count} new intervals found");
-            intervalContainer.Intervals.AddRange(tmp);
+            finder = new IntervalsFinder(fitnessDataContainer, intervalContainer, powerZones, IntervalSeachGroups.Medium, thresholds);
+            saved = finder.Search();
+            Log.Info($"Medium intervals search done, {saved} saved");
 
             // Long intervals
             Log.Info($"Starting long interval search...");
-            zone = new CoreModels.Zone
-            {
-                HighLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Long] + 2)?.HighLimit ?? 0,
-                LowLimit = powerZones.Find(x => x.Id == IntervalZones.IntervalMinZones[IntervalGroups.Long])?.LowLimit ?? 0
-            };
-            finder = new IntervalsFinder(fitnessDataContainer, intervalContainer, powerZones, IntervalTimes.LongWindowSize, zone, thresholds);
-            tmp = finder.Search();
-            for (int i = 0; i < tmp.Count; i++)
-            {
-                if (IntervalAlreadyExists(tmp[i], intervalContainer.Intervals))
-                {
-                    Log.Debug($"Interval {tmp[i].StartTime.TimeOfDay}-{tmp[i].StartTime.TimeOfDay} at {tmp[i].AveragePower} already exists");
-                    tmp.RemoveAt(i);
-                }
-            }
-            Log.Info($"Long intervals search done. {tmp.Count} new intervals found");
-            intervalContainer.Intervals.AddRange(tmp);
+            finder = new IntervalsFinder(fitnessDataContainer, intervalContainer, powerZones, IntervalSeachGroups.Long, thresholds);
+            saved = finder.Search();
+            Log.Info($"Long intervals search done, {saved} saved");
 
             // Integrar intervalos
             IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer, powerZones, thresholds);

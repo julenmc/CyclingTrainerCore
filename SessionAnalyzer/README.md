@@ -19,6 +19,9 @@ Estas son las principales funcionalidades de la biblioteca:
     * Añadir método asíncrono con llamadas en diferentes tareas para cada periodo definido (sprint, corto, medio y largo).
     * Probar si durante el refinado se pueden perder sprints.
     * Añadir intervalos nulos / descansos al final. Así la sesión completa estará dividida en intervalos.
+    * Explicar en la documentación el funcionamiento de la búsqueda de intervalos en función de las zonas de potencia.
 
 ## Known issues
 * En el test de la consola el intervalo de las 15:54:00 y el de las 15:59:42 no tienen sentido, empiezan más tarde de lo que deberían. Los intervalos cortos anteriores y posteriores no tienen el mismo problema.
+* No se comprueba que los thresholds de intervalos estén dentro de los límites establecidos.
+* Problemas cuando dos intervalos del mismo tamaño van seguidos.

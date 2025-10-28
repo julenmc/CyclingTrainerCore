@@ -7,4 +7,11 @@ namespace CyclingTrainer.SessionAnalyzer.Enums
         Long,
         Nule
     }
+
+    internal enum IntervalSeachGroups
+    {
+        Short,
+        Medium,
+        Long
+    }
 }

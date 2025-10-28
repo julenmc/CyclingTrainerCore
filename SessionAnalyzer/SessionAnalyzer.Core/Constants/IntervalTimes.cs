@@ -10,13 +10,20 @@ namespace CyclingTrainer.SessionAnalyzer.Constants
         internal const ushort LongIntervalMinTime = 600;        // Less than 10 minutes is considered a medium interval
         internal const int ShortWindowSize = 10;
         internal const int MediumWindowSize = 30;
-        internal const int LongWindowSize = 60;
+        internal const int LongWindowSize = 60; 
 
-        internal static readonly Dictionary<IntervalGroups, int> IntervalMinTimes = new Dictionary<IntervalGroups, int>
+        internal static readonly Dictionary<IntervalSeachGroups, int> IntervalMinTimes = new Dictionary<IntervalSeachGroups, int>
         {
-            {IntervalGroups.Short, IntervalMinTime},            // Short intervals must be at least of 30 seconds
-            {IntervalGroups.Medium, MediumIntervalMinTime},     // Medium intervals must be at least of 4 minutes
-            {IntervalGroups.Long, LongIntervalMinTime}          // Long intervals must be at least of 10 minutes
+            {IntervalSeachGroups.Short, IntervalMinTime},            // Short intervals must be at least of 30 seconds
+            {IntervalSeachGroups.Medium, MediumIntervalMinTime},     // Medium intervals must be at least of 4 minutes
+            {IntervalSeachGroups.Long, LongIntervalMinTime}          // Long intervals must be at least of 10 minutes
+        };
+        
+        internal static readonly Dictionary<IntervalSeachGroups, int> IntervalSearchWindows = new Dictionary<IntervalSeachGroups, int>
+        {
+            {IntervalSeachGroups.Short, ShortWindowSize},            
+            {IntervalSeachGroups.Medium, MediumWindowSize},     
+            {IntervalSeachGroups.Long, LongWindowSize}         
         };
     }
 }

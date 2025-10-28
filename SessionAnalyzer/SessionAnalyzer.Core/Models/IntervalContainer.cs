@@ -1,3 +1,5 @@
+using CyclingTrainer.SessionAnalyzer.Services.Intervals;
+
 namespace CyclingTrainer.SessionAnalyzer.Models
 {
     internal class IntervalContainer
@@ -8,6 +10,11 @@ namespace CyclingTrainer.SessionAnalyzer.Models
         internal bool IsTheGapASprint(DateTime time)
         {
             return Sprints.Find(x => x.EndTime == time) != null;
+        }
+
+        internal bool AlreadyExists(Interval interval)
+        {
+            return Intervals.Any(x => IntervalsUtils.AreEqual(x, interval));
         }
     }
 }

@@ -3,7 +3,7 @@ using CyclingTrainer.SessionAnalyzer.Test.Models;
 using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionAnalyzer.Services.Intervals;
 using static CyclingTrainer.SessionAnalyzer.Test.Constants.FitnessDataCreation;
-using static CyclingTrainer.SessionAnalyzer.Test.Intervals.IntervalsConstants;
+using static CyclingTrainer.SessionAnalyzer.Test.Intervals.IntervalsTestConstants;
 
 namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 {
@@ -16,25 +16,10 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
     /// 
     /// The test follow the convention:
     /// <c>Scenario_ExpectedResult</c>.
-    /// 
-    /// The repository <see cref="FitnessDataContainer"/> is locked with <see cref="SetUp"/> before 
-    /// each test and unlocked with <see cref="TestCleanup"/> after each test.
     /// </remarks>
     [TestClass]
     public sealed class RefinerUnitTests
     {
-        [TestInitialize]
-        public void SetUp()
-        {
-            Monitor.Enter(LockClass.LockObject);
-        }
-
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            Monitor.Exit(LockClass.LockObject);
-        }
-
         /// <summary>
         /// Verifies that two intervals don't collide, they stay the same.
         /// </summary>
@@ -47,30 +32,30 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             int restTime = 100;
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
-                new FitnessSection{ Time = MediumDefaultTime, Power = MediumMinValue, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = restTime, Power = NulePowerDefaultValue, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = LongDefaultTime, Power = LongMaxValue, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = MediumIntervalValues.DefaultTime, Power = MediumIntervalValues.MinPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = restTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
             FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
 
-            DateTime longStart = DefaultStartDate.AddSeconds(MediumDefaultTime + restTime);
+            DateTime longStart = DefaultStartDate.AddSeconds(MediumIntervalValues.DefaultTime + restTime);
             IntervalContainer intervalContainer = new IntervalContainer();
             intervalContainer.Intervals = new List<Interval>()
             {
                 new Interval()
                 {
                     StartTime = DefaultStartDate,
-                    EndTime = DefaultStartDate.AddSeconds(MediumDefaultTime - 1),
-                    TimeDiff = MediumDefaultTime,
-                    AveragePower = MediumMinValue
+                    EndTime = DefaultStartDate.AddSeconds(MediumIntervalValues.DefaultTime - 1),
+                    TimeDiff = MediumIntervalValues.DefaultTime,
+                    AveragePower = MediumIntervalValues.MinPower
                 },
                 new Interval()
                 {
                     StartTime = longStart,
-                    EndTime = longStart.AddSeconds(LongDefaultTime),
-                    TimeDiff = LongDefaultTime,
-                    AveragePower = LongMaxValue
+                    EndTime = longStart.AddSeconds(LongIntervalValues.DefaultTime),
+                    TimeDiff = LongIntervalValues.DefaultTime,
+                    AveragePower = LongIntervalValues.MaxPower
                 },
             };
 
@@ -79,9 +64,9 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 
             Assert.AreEqual(2, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
-            Assert.AreEqual(MediumDefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(MediumIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
             Assert.AreEqual(longStart, intervalContainer.Intervals[1].StartTime);
-            Assert.AreEqual(LongDefaultTime, intervalContainer.Intervals[1].TimeDiff);
+            Assert.AreEqual(LongIntervalValues.DefaultTime, intervalContainer.Intervals[1].TimeDiff);
         }
 
         /// <summary>
@@ -97,9 +82,9 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             int intervalDelay = 60;
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
-                new FitnessSection{ Time = intervalDelay, Power = MediumMinValue, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = MediumDefaultTime - intervalDelay, Power = MediumMinValue, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = LongDefaultTime, Power = LongMaxValue, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = intervalDelay, Power = MediumIntervalValues.MinPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = MediumIntervalValues.DefaultTime - intervalDelay, Power = MediumIntervalValues.MinPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = LongIntervalValues.MaxPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
             FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
@@ -111,16 +96,16 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new Interval()
                 {
                     StartTime = DefaultStartDate,
-                    EndTime = DefaultStartDate.AddSeconds(MediumDefaultTime - 1),
-                    TimeDiff = MediumDefaultTime,
-                    AveragePower = MediumMinValue
+                    EndTime = DefaultStartDate.AddSeconds(MediumIntervalValues.DefaultTime - 1),
+                    TimeDiff = MediumIntervalValues.DefaultTime,
+                    AveragePower = MediumIntervalValues.MinPower
                 },
                 new Interval()
                 {
                     StartTime = longStart,
-                    EndTime = longStart.AddSeconds(LongDefaultTime + (MediumDefaultTime - intervalDelay) - 1),
-                    TimeDiff = LongDefaultTime + (MediumDefaultTime - intervalDelay),
-                    AveragePower = LongMaxValue
+                    EndTime = longStart.AddSeconds(LongIntervalValues.DefaultTime + (MediumIntervalValues.DefaultTime - intervalDelay) - 1),
+                    TimeDiff = LongIntervalValues.DefaultTime + (MediumIntervalValues.DefaultTime - intervalDelay),
+                    AveragePower = LongIntervalValues.MaxPower
                 },
             };
 
@@ -129,10 +114,10 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
-            Assert.AreEqual(LongDefaultTime + MediumDefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(LongIntervalValues.DefaultTime + MediumIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
             Assert.AreEqual(1, intervalContainer.Intervals[0].Intervals?.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].Intervals?[0].StartTime);
-            Assert.AreEqual(MediumDefaultTime, intervalContainer.Intervals[0].Intervals?[0].TimeDiff);
+            Assert.AreEqual(MediumIntervalValues.DefaultTime, intervalContainer.Intervals[0].Intervals?[0].TimeDiff);
         }
 
         /// <summary>
@@ -148,9 +133,9 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             int intervalDelay = 60;
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
-                new FitnessSection{ Time = intervalDelay, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = ShortDefaultTime - intervalDelay, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = LongDefaultTime, Power = LongDefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = intervalDelay, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime - intervalDelay, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
             FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
@@ -162,16 +147,16 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new Interval()
                 {
                     StartTime = DefaultStartDate,
-                    EndTime = DefaultStartDate.AddSeconds(ShortDefaultTime - 1),
-                    TimeDiff = ShortDefaultTime,
-                    AveragePower = ShortDefaultPower
+                    EndTime = DefaultStartDate.AddSeconds(ShortIntervalValues.DefaultTime - 1),
+                    TimeDiff = ShortIntervalValues.DefaultTime,
+                    AveragePower = ShortIntervalValues.DefaultPower
                 },
                 new Interval()
                 {
                     StartTime = longStart,
-                    EndTime = longStart.AddSeconds(LongDefaultTime + (ShortDefaultTime - intervalDelay) - 1),
-                    TimeDiff = LongDefaultTime + (ShortDefaultTime - intervalDelay),
-                    AveragePower = LongDefaultPower
+                    EndTime = longStart.AddSeconds(LongIntervalValues.DefaultTime + (ShortIntervalValues.DefaultTime - intervalDelay) - 1),
+                    TimeDiff = LongIntervalValues.DefaultTime + (ShortIntervalValues.DefaultTime - intervalDelay),
+                    AveragePower = LongIntervalValues.DefaultPower
                 },
             };
 
@@ -180,9 +165,9 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 
             Assert.AreEqual(2, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
-            Assert.AreEqual(ShortDefaultTime, intervalContainer.Intervals[0].TimeDiff);
-            Assert.AreEqual(DefaultStartDate.AddSeconds(ShortDefaultTime), intervalContainer.Intervals[1].StartTime);
-            Assert.AreEqual(LongDefaultTime, intervalContainer.Intervals[1].TimeDiff);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(DefaultStartDate.AddSeconds(ShortIntervalValues.DefaultTime), intervalContainer.Intervals[1].StartTime);
+            Assert.AreEqual(LongIntervalValues.DefaultTime, intervalContainer.Intervals[1].TimeDiff);
         }
 
         /// <summary>
@@ -198,30 +183,30 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             int intervalDelay = 60;
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
-                new FitnessSection{ Time = LongDefaultTime, Power = LongDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = MediumDefaultTime - intervalDelay, Power = MediumDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = MediumDefaultTime, Power = MediumDefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = MediumIntervalValues.DefaultTime - intervalDelay, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = MediumIntervalValues.DefaultTime, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
             FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
 
-            DateTime mediumStart = DefaultStartDate.AddSeconds(LongDefaultTime);
+            DateTime mediumStart = DefaultStartDate.AddSeconds(LongIntervalValues.DefaultTime);
             IntervalContainer intervalContainer = new IntervalContainer();
             intervalContainer.Intervals = new List<Interval>()
             {
                 new Interval()
                 {
                     StartTime = DefaultStartDate,
-                    EndTime = DefaultStartDate.AddSeconds(LongDefaultTime + (MediumDefaultTime - intervalDelay) - 1),
-                    TimeDiff = LongDefaultTime + (MediumDefaultTime - intervalDelay),
-                    AveragePower = LongDefaultPower
+                    EndTime = DefaultStartDate.AddSeconds(LongIntervalValues.DefaultTime + (MediumIntervalValues.DefaultTime - intervalDelay) - 1),
+                    TimeDiff = LongIntervalValues.DefaultTime + (MediumIntervalValues.DefaultTime - intervalDelay),
+                    AveragePower = LongIntervalValues.DefaultPower
                 },
                 new Interval()
                 {
                     StartTime = mediumStart,
-                    EndTime = mediumStart.AddSeconds(MediumDefaultTime - 1),
-                    TimeDiff = MediumDefaultTime,
-                    AveragePower = MediumDefaultPower
+                    EndTime = mediumStart.AddSeconds(MediumIntervalValues.DefaultTime - 1),
+                    TimeDiff = MediumIntervalValues.DefaultTime,
+                    AveragePower = MediumIntervalValues.DefaultPower
                 },
             };
 
@@ -230,10 +215,10 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
-            Assert.AreEqual(LongDefaultTime + MediumDefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(LongIntervalValues.DefaultTime + MediumIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
             Assert.AreEqual(1, intervalContainer.Intervals[0].Intervals?.Count);
-            Assert.AreEqual(DefaultStartDate.AddSeconds(LongDefaultTime), intervalContainer.Intervals[0].Intervals?[0].StartTime);
-            Assert.AreEqual(MediumDefaultTime, intervalContainer.Intervals[0].Intervals?[0].TimeDiff);
+            Assert.AreEqual(DefaultStartDate.AddSeconds(LongIntervalValues.DefaultTime), intervalContainer.Intervals[0].Intervals?[0].StartTime);
+            Assert.AreEqual(MediumIntervalValues.DefaultTime, intervalContainer.Intervals[0].Intervals?[0].TimeDiff);
         }
 
         /// <summary>
@@ -249,30 +234,30 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             int intervalDelay = 60;
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
-                new FitnessSection{ Time = LongDefaultTime, Power = LongDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = ShortDefaultTime - intervalDelay, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = ShortDefaultTime, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime - intervalDelay, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
             FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
 
-            DateTime mediumStart = DefaultStartDate.AddSeconds(LongDefaultTime);
+            DateTime mediumStart = DefaultStartDate.AddSeconds(LongIntervalValues.DefaultTime);
             IntervalContainer intervalContainer = new IntervalContainer();
             intervalContainer.Intervals = new List<Interval>()
             {
                 new Interval()
                 {
                     StartTime = DefaultStartDate,
-                    EndTime = DefaultStartDate.AddSeconds(LongDefaultTime + (ShortDefaultTime - intervalDelay) - 1),
-                    TimeDiff = LongDefaultTime + (ShortDefaultTime - intervalDelay),
-                    AveragePower = LongDefaultPower
+                    EndTime = DefaultStartDate.AddSeconds(LongIntervalValues.DefaultTime + (ShortIntervalValues.DefaultTime - intervalDelay) - 1),
+                    TimeDiff = LongIntervalValues.DefaultTime + (ShortIntervalValues.DefaultTime - intervalDelay),
+                    AveragePower = LongIntervalValues.DefaultPower
                 },
                 new Interval()
                 {
                     StartTime = mediumStart,
-                    EndTime = mediumStart.AddSeconds(ShortDefaultTime - 1),
-                    TimeDiff = ShortDefaultTime,
-                    AveragePower = ShortDefaultPower
+                    EndTime = mediumStart.AddSeconds(ShortIntervalValues.DefaultTime - 1),
+                    TimeDiff = ShortIntervalValues.DefaultTime,
+                    AveragePower = ShortIntervalValues.DefaultPower
                 },
             };
 
@@ -281,9 +266,9 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 
             Assert.AreEqual(2, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
-            Assert.AreEqual(LongDefaultTime, intervalContainer.Intervals[0].TimeDiff);
-            Assert.AreEqual(DefaultStartDate.AddSeconds(LongDefaultTime), intervalContainer.Intervals[1].StartTime);
-            Assert.AreEqual(ShortDefaultTime, intervalContainer.Intervals[1].TimeDiff);
+            Assert.AreEqual(LongIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(DefaultStartDate.AddSeconds(LongIntervalValues.DefaultTime), intervalContainer.Intervals[1].StartTime);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals[1].TimeDiff);
         }
 
         /// <summary>
@@ -299,9 +284,9 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             int intervalDelay = 60;
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
-                new FitnessSection{ Time = intervalDelay, Power = LongDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = MediumDefaultTime, Power = MediumDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = LongDefaultTime - (intervalDelay + MediumDefaultTime), Power = LongDefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = intervalDelay, Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = MediumIntervalValues.DefaultTime, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = LongIntervalValues.DefaultTime - (intervalDelay + MediumIntervalValues.DefaultTime), Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
             FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
@@ -313,16 +298,16 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new Interval()
                 {
                     StartTime = DefaultStartDate,
-                    EndTime = DefaultStartDate.AddSeconds(LongDefaultTime),
-                    TimeDiff = LongDefaultTime,
-                    AveragePower = LongDefaultPower
+                    EndTime = DefaultStartDate.AddSeconds(LongIntervalValues.DefaultTime),
+                    TimeDiff = LongIntervalValues.DefaultTime,
+                    AveragePower = LongIntervalValues.DefaultPower
                 },
                 new Interval()
                 {
                     StartTime = mediumStart,
-                    EndTime = mediumStart.AddSeconds(MediumDefaultTime),
-                    TimeDiff = MediumDefaultTime,
-                    AveragePower = MediumDefaultPower
+                    EndTime = mediumStart.AddSeconds(MediumIntervalValues.DefaultTime),
+                    TimeDiff = MediumIntervalValues.DefaultTime,
+                    AveragePower = MediumIntervalValues.DefaultPower
                 },
             };
 
@@ -331,10 +316,10 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
-            Assert.AreEqual(LongDefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(LongIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
             Assert.AreEqual(1, intervalContainer.Intervals[0].Intervals?.Count);
             Assert.AreEqual(mediumStart, intervalContainer.Intervals[0].Intervals?[0].StartTime);
-            Assert.AreEqual(MediumDefaultTime, intervalContainer.Intervals[0].Intervals?[0].TimeDiff);
+            Assert.AreEqual(MediumIntervalValues.DefaultTime, intervalContainer.Intervals[0].Intervals?[0].TimeDiff);
         }
 
         /// <summary>
@@ -350,11 +335,11 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             int intervalDelay = 60;
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
-                new FitnessSection{ Time = intervalDelay, Power = LongDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = intervalDelay, Power = MediumDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = ShortDefaultTime, Power = ShortDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = MediumDefaultTime - (intervalDelay + MediumDefaultTime), Power = MediumDefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = LongDefaultTime - (intervalDelay + MediumDefaultTime), Power = LongDefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = intervalDelay, Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = intervalDelay, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = MediumIntervalValues.DefaultTime - (intervalDelay + MediumIntervalValues.DefaultTime), Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = LongIntervalValues.DefaultTime - (intervalDelay + MediumIntervalValues.DefaultTime), Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
             FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
@@ -367,23 +352,23 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new Interval()
                 {
                     StartTime = DefaultStartDate,
-                    EndTime = DefaultStartDate.AddSeconds(LongDefaultTime),
-                    TimeDiff = LongDefaultTime,
-                    AveragePower = LongDefaultPower
+                    EndTime = DefaultStartDate.AddSeconds(LongIntervalValues.DefaultTime),
+                    TimeDiff = LongIntervalValues.DefaultTime,
+                    AveragePower = LongIntervalValues.DefaultPower
                 },
                 new Interval()
                 {
                     StartTime = mediumStart,
-                    EndTime = mediumStart.AddSeconds(MediumDefaultTime),
-                    TimeDiff = MediumDefaultTime,
-                    AveragePower = MediumDefaultPower
+                    EndTime = mediumStart.AddSeconds(MediumIntervalValues.DefaultTime),
+                    TimeDiff = MediumIntervalValues.DefaultTime,
+                    AveragePower = MediumIntervalValues.DefaultPower
                 },
                 new Interval()
                 {
                     StartTime = shortStart,
-                    EndTime = shortStart.AddSeconds(ShortDefaultTime),
-                    TimeDiff = ShortDefaultTime,
-                    AveragePower = ShortDefaultPower
+                    EndTime = shortStart.AddSeconds(ShortIntervalValues.DefaultTime),
+                    TimeDiff = ShortIntervalValues.DefaultTime,
+                    AveragePower = ShortIntervalValues.DefaultPower
                 },
             };
 
@@ -392,13 +377,13 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
-            Assert.AreEqual(LongDefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(LongIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
             Assert.AreEqual(1, intervalContainer.Intervals[0].Intervals?.Count);
             Assert.AreEqual(mediumStart, intervalContainer.Intervals[0].Intervals?[0].StartTime);
-            Assert.AreEqual(MediumDefaultTime, intervalContainer.Intervals[0].Intervals?[0].TimeDiff);
+            Assert.AreEqual(MediumIntervalValues.DefaultTime, intervalContainer.Intervals[0].Intervals?[0].TimeDiff);
             Assert.AreEqual(1, intervalContainer.Intervals[0].Intervals?[0].Intervals?.Count);
             Assert.AreEqual(shortStart, intervalContainer.Intervals?[0].Intervals?[0].Intervals?[0].StartTime);
-            Assert.AreEqual(ShortDefaultTime, intervalContainer.Intervals?[0].Intervals?[0].Intervals?[0].TimeDiff);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals?[0].Intervals?[0].Intervals?[0].TimeDiff);
         }
     }
 }
