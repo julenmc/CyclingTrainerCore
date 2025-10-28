@@ -514,17 +514,18 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         /// </summary>
         /// <remarks>
         /// When searching with medium configuration in a session with one medium interval
-        /// divided by a 60 second ~30% power lift, the finder will find two separate intervals.
+        /// divided by a 60 second ~35% power lift, the finder will find two separate intervals.
         /// Even if the average power for the full interval is lower than the high limit.
         /// </remarks>
         [TestMethod]
         public void Medium_MediumIntervalLift_TwoFound()
         {
             int liftTime = 60;
+            int liftPower = 350;
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
                 new FitnessSection{ Time = MediumIntervalValues.DefaultTime, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = liftTime, Power = ShortIntervalValues.MaxPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = liftTime, Power = liftPower, HearRate = 120, Cadence = 85},
                 new FitnessSection{ Time = MediumIntervalValues.DefaultTime, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
@@ -779,7 +780,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         /// </summary>
         /// <remarks>
         /// When searching with long configuration in a session with one long interval
-        /// divided by a 240 second ~35% power lift, the finder will find two separate intervals.
+        /// divided by a 240 second ~45% power lift, the finder will find two separate intervals.
         /// Even if the average power for the full interval is lower than the high limit.
         /// </remarks>
         [TestMethod]
@@ -789,7 +790,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
                 new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = liftTime, Power = MediumIntervalValues.MaxPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = liftTime, Power = ShortIntervalValues.MinPower, HearRate = 120, Cadence = 85},
                 new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
@@ -827,7 +828,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
                 new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = MediumIntervalValues.MaxPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = ShortIntervalValues.MinPower, HearRate = 120, Cadence = 85},
             };
             List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
             FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
@@ -846,7 +847,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             // Second interval 
             Assert.AreEqual(DefaultStartDate.AddSeconds(LongIntervalValues.DefaultTime), intervalContainer.Intervals[1].StartTime);
             Assert.AreEqual(LongIntervalValues.DefaultTime, intervalContainer.Intervals[1].TimeDiff);
-            Assert.AreEqual(MediumIntervalValues.MaxPower, intervalContainer.Intervals[1].AveragePower);
+            Assert.AreEqual(ShortIntervalValues.MinPower, intervalContainer.Intervals[1].AveragePower);
         }
     }
 }

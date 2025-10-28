@@ -24,4 +24,3 @@ Estas son las principales funcionalidades de la biblioteca:
 ## Known issues
 * En el test de la consola el intervalo de las 15:54:00 y el de las 15:59:42 no tienen sentido, empiezan más tarde de lo que deberían. Los intervalos cortos anteriores y posteriores no tienen el mismo problema.
 * No se comprueba que los thresholds de intervalos estén dentro de los límites establecidos.
-* Problemas cuando dos intervalos del mismo tamaño van seguidos.

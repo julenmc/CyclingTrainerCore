@@ -203,9 +203,9 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             // Expandir el rango para incluir puntos contiguos
             int extraPoints = interval.TimeDiff switch
             {
-                >= IntervalTimes.LongIntervalMinTime => Math.Max(IntervalTimes.LongWindowSize, _windowSize) * 3,
-                >= IntervalTimes.MediumIntervalMinTime => Math.Max(IntervalTimes.MediumWindowSize, _windowSize) * 3,
-                _ => Math.Max(IntervalTimes.ShortWindowSize, _windowSize) * 3
+                >= IntervalTimes.LongIntervalMinTime => Math.Max(IntervalTimes.LongWindowSize, _windowSize),// * 3,
+                >= IntervalTimes.MediumIntervalMinTime => Math.Max(IntervalTimes.MediumWindowSize, _windowSize),// * 3,
+                _ => Math.Max(IntervalTimes.ShortWindowSize, _windowSize),// * 3
             };
             int expandedStartIdx = Math.Max(0, intervalStartIdx - extraPoints);
             int expandedEndIdx = Math.Min(points.Count - 1, intervalEndIdx + extraPoints);
