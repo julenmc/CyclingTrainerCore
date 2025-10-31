@@ -7,7 +7,7 @@ namespace CyclingTrainer.SessionAnalyzer.Models
         public int TimeDiff { get; set; }
         public float AveragePower { get; set; }
         public float MaxPower { get; set; }
-        public List<Interval>? Intervals { get; set; }
+        public List<Interval> Intervals { get; set; } = new();
 
         internal bool IsSubInterval(Interval potential)
         {

@@ -55,7 +55,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             Log.Info($"Long intervals search done, {saved} saved");
 
             // Integrar intervalos
-            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer, powerZones, thresholds);
+            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer);
             refiner.Refine();
 
             Log.Info($"Interval search completed. Found {intervalContainer.Intervals.Count} main intervals");

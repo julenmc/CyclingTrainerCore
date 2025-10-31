@@ -2,3 +2,5 @@
 **/obj
 **/.vs
 **/.vscode
+**/lcov.info
+**/coveragereport

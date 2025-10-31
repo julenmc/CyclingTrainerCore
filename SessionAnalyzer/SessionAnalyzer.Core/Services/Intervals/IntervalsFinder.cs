@@ -14,9 +14,10 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
         private List<CoreModels.Zone> _powerZones;
         private FitnessDataContainer _fitnessDataContainer;
         private IntervalContainer _intervalContainer;
-        private Thresholds? _thresholds;
+        private Thresholds _thresholds;
         IntervalSeachGroups _searchGroup;
         private int _windowSize;
+        private int _intervalStartMinPower;
         CoreModels.Zone _startThresholdPowerZone;
 
         internal IntervalsFinder(FitnessDataContainer fitnessDataContainer,
@@ -28,33 +29,45 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             _fitnessDataContainer = fitnessDataContainer;
             _intervalContainer = intervalContainer;
             _powerZones = powerZones;
-            _thresholds = thresholds;
             _searchGroup = searchGroup;
             _windowSize = IntervalTimes.IntervalSearchWindows[_searchGroup];
+            CoreModels.Zone? highZone = powerZones.Find(x => x.Id == IntervalZones.SearchRequiredZones[_searchGroup] + 2);
+            CoreModels.Zone? lowZone = powerZones.Find(x => x.Id == IntervalZones.SearchRequiredZones[_searchGroup]);
+            if (highZone == null || lowZone == null)
+            {
+                throw new Exception("Invalid power zones");
+            }
             _startThresholdPowerZone = new CoreModels.Zone
             {
-                HighLimit = powerZones.Find(x => x.Id == IntervalZones.SearchRequiredZones[_searchGroup] + 2)?.HighLimit ?? 0,
-                LowLimit = powerZones.Find(x => x.Id == IntervalZones.SearchRequiredZones[_searchGroup])?.LowLimit ?? 0
+                HighLimit = highZone.HighLimit,
+                LowLimit = lowZone.LowLimit
             };
+            _intervalStartMinPower = (lowZone.HighLimit + lowZone.LowLimit) / 2;
+            if (thresholds != null)
+            {
+                _thresholds = thresholds;
+            }
+            else
+            {
+                _thresholds = _searchGroup switch
+                {
+                    IntervalSeachGroups.Short => IntervalSearchValues.ShortIntervals.Default,
+                    IntervalSeachGroups.Medium => IntervalSearchValues.MediumIntervals.Default,
+                    _ => IntervalSearchValues.LongIntervals.Default,    // Long. If Long is writte, it forces to write "_" (default) case
+                };
+            }
         }
 
         internal int Search()
         {
             int intervalCount = 0;
-            Thresholds defaultThresholds = _searchGroup switch
-            {
-                IntervalSeachGroups.Short => IntervalSearchValues.ShortIntervals.Default,
-                IntervalSeachGroups.Medium => IntervalSearchValues.MediumIntervals.Default,
-                IntervalSeachGroups.Long => IntervalSearchValues.LongIntervals.Default,
-                _ => throw new Exception("Window size not accepted"),
-            };
             // Inicializar con valores por defecto si no se proporcionan
-            float cvStartThr = _thresholds != null ? _thresholds.CvStart : defaultThresholds.CvStart;
-            float cvFollowThr = _thresholds != null ? _thresholds.CvFollow : defaultThresholds.CvFollow;
-            float rangeThr = _thresholds != null ? _thresholds.Range : defaultThresholds.Range;
-            float maRelThr = _thresholds != null ? _thresholds.MaRel : defaultThresholds.MaRel;
+            float cvStartThr = _thresholds.CvStart;
+            float cvFollowThr = _thresholds.CvFollow;
+            float rangeThr = _thresholds.Range;
+            float maRelThr = _thresholds.MaRel;
 
-            int minStartPower = ((_powerZones.Find(x => x.Id == IntervalZones.SearchRequiredZones[_searchGroup])?.HighLimit ?? 2000) + _startThresholdPowerZone.LowLimit) / 2;
+            int minStartPower = _intervalStartMinPower;
             int maxStartPower = _startThresholdPowerZone.HighLimit;
 
             Log.Debug($"Using thresholds: cvStart={cvStartThr}, cvFollow={cvFollowThr}, range={rangeThr}, maRel={maRelThr}. minStartPower={minStartPower} maxStartPower={maxStartPower}W");
@@ -136,7 +149,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                     auxIndex--;
                     i++;
                 }
-                i = i < powerModels.Count ? firstUnstablePointIndex + 1 : i;
+                i = (i < powerModels.Count && !sessionStopped) ? firstUnstablePointIndex + 1 : i;
                 var endTime = powerModels[Math.Max(0, auxIndex)].PointDate;
                 var duration = (endTime - startTime).TotalSeconds + 1;
 
@@ -194,12 +207,6 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             int intervalStartIdx = points.FindIndex(p => p.Timestamp.GetDateTime() >= interval.StartTime);
             int intervalEndIdx = points.FindLastIndex(p => p.Timestamp.GetDateTime() <= interval.EndTime);
 
-            if (intervalStartIdx == -1 || intervalEndIdx == -1 || intervalStartIdx > intervalEndIdx)
-            {
-                Log.Warn("Invalid interval indices found during refinement");
-                return;
-            }
-
             // Expandir el rango para incluir puntos contiguos
             int extraPoints = interval.TimeDiff switch
             {
@@ -210,26 +217,8 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             int expandedStartIdx = Math.Max(0, intervalStartIdx - extraPoints);
             int expandedEndIdx = Math.Min(points.Count - 1, intervalEndIdx + extraPoints);
 
-            // Check if session has been stopped during the expansion
-            var expandedStartPoints = points.GetRange(expandedStartIdx, intervalStartIdx - expandedStartIdx + 1);
-            int auxIndex = 1;
-            while (auxIndex < expandedStartPoints.Count)
-            {
-                if ((int)(expandedStartPoints[auxIndex].Timestamp.GetDateTime() - expandedStartPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1 && 
-                    !_intervalContainer.IsTheGapASprint(expandedStartPoints[auxIndex].Timestamp.GetDateTime()))
-                {
-                    expandedStartIdx = intervalStartIdx - (expandedStartPoints.Count - auxIndex) + 1;
-                    expandedStartPoints = points.GetRange(expandedStartIdx, intervalStartIdx - expandedStartIdx + 1);
-                    auxIndex = 1;
-                }
-                else
-                {
-                    auxIndex++;
-                }
-            }
-
             var expandedEndPoints = points.GetRange(intervalEndIdx, expandedEndIdx - intervalEndIdx + 1);
-            auxIndex = 1;
+            int auxIndex = 1;
             while (auxIndex < expandedEndPoints.Count)
             {
                 if ((int)(expandedEndPoints[auxIndex].Timestamp.GetDateTime() - expandedEndPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1 && 
@@ -245,12 +234,6 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 
             var expandedPoints = points.GetRange(expandedStartIdx, expandedEndIdx - expandedStartIdx + 1);
 
-            if (!expandedPoints.Any())
-            {
-                Log.Warn("No points found for interval refinement");
-                return;
-            }
-
             float targetPower = interval.AveragePower;
             float defaultMaRel = interval.TimeDiff switch
             {
@@ -258,7 +241,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 >= IntervalTimes.MediumIntervalMinTime => IntervalSearchValues.MediumIntervals.Default.MaRel,
                 _ => IntervalSearchValues.ShortIntervals.Default.MaRel
             };
-            float maRelThr = _thresholds != null ? _thresholds.MaRel : defaultMaRel;
+            float maRelThr = _thresholds.MaRel;
             float allowedDeviation = targetPower * maRelThr;
 
             // Refinar límite inicial - buscar hacia atrás desde el punto inicial
@@ -275,7 +258,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             }
 
             // Buscar hacia adelante si es necesario
-            while (startIndex < expandedPoints.Count - 1 &&
+            while (/*startIndex < expandedPoints.Count - 1 &&*/ // I understand that it can't reach the end of the expandedPoint because it's inside the interval
                    Math.Abs((expandedPoints[startIndex].Stats.Power ?? 0) - targetPower) > allowedDeviation)
             {
                 startIndex++;
@@ -286,16 +269,16 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 p => p.Timestamp.GetDateTime() <= interval.EndTime);
 
             // Buscar hacia adelante para encontrar el verdadero final
-            while (endIndex < expandedPoints.Count - 1)
-            {
-                var nextPower = expandedPoints[endIndex + 1].Stats.Power ?? 0;
-                if (Math.Abs(nextPower - targetPower) > allowedDeviation)
-                    break;
-                endIndex++;
-            }
+            // while (endIndex < expandedPoints.Count - 1)
+            // {
+            //     var nextPower = expandedPoints[endIndex + 1].Stats.Power ?? 0;
+            //     if (Math.Abs(nextPower - targetPower) > allowedDeviation)
+            //         break;
+            //     endIndex++;
+            // }
 
             // Buscar hacia atrás si es necesario
-            while (endIndex > startIndex &&
+            while (/*endIndex > startIndex &&*/     // I understand that it can't reach the end of the expandedPoint because it's inside the interval
                    Math.Abs((expandedPoints[endIndex].Stats.Power ?? 0) - targetPower) > allowedDeviation)
             {
                 endIndex--;
@@ -323,14 +306,6 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                         .Select(p => p.Stats.Power ?? 0);
                     interval.AveragePower = (float)powers.Average();
                 }
-                else
-                {
-                    // Log.Debug("Refined interval too short, keeping original limits");
-                }
-            }
-            else
-            {
-                // Log.Debug("Could not find suitable refined limits, keeping original");
             }
         }
     }

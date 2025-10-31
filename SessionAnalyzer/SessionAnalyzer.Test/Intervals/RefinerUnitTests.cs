@@ -59,7 +59,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer, PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer);
             refiner.Refine();
 
             Assert.AreEqual(2, intervalContainer.Intervals.Count);
@@ -109,7 +109,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer, PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer);
             refiner.Refine();
 
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
@@ -160,7 +160,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer, PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer);
             refiner.Refine();
 
             Assert.AreEqual(2, intervalContainer.Intervals.Count);
@@ -210,7 +210,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer, PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer);
             refiner.Refine();
 
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
@@ -261,7 +261,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer, PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer);
             refiner.Refine();
 
             Assert.AreEqual(2, intervalContainer.Intervals.Count);
@@ -311,7 +311,57 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer, PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer);
+            refiner.Refine();
+
+            Assert.AreEqual(1, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(LongIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(1, intervalContainer.Intervals[0].Intervals?.Count);
+            Assert.AreEqual(mediumStart, intervalContainer.Intervals[0].Intervals?[0].StartTime);
+            Assert.AreEqual(MediumIntervalValues.DefaultTime, intervalContainer.Intervals[0].Intervals?[0].TimeDiff);
+        }
+
+        /// <summary>
+        /// Verifies that when one interval is inside another, with the same start time,
+        /// the short one is integrated in the long one
+        /// </summary>
+        /// <remarks>
+        /// A default medium size interval is inside a default long size interval, both with the same
+        /// start time. Medium interval must end inside the long interval.
+        /// </remarks>
+        [TestMethod]
+        public void SameStartTime_Integrated()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = MediumIntervalValues.DefaultTime, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = LongIntervalValues.DefaultTime - (MediumIntervalValues.DefaultTime), Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+
+            DateTime mediumStart = DefaultStartDate;
+            IntervalContainer intervalContainer = new IntervalContainer();
+            intervalContainer.Intervals = new List<Interval>()
+            {
+                new Interval()
+                {
+                    StartTime = DefaultStartDate,
+                    EndTime = DefaultStartDate.AddSeconds(LongIntervalValues.DefaultTime),
+                    TimeDiff = LongIntervalValues.DefaultTime,
+                    AveragePower = LongIntervalValues.DefaultPower
+                },
+                new Interval()
+                {
+                    StartTime = mediumStart,
+                    EndTime = mediumStart.AddSeconds(MediumIntervalValues.DefaultTime),
+                    TimeDiff = MediumIntervalValues.DefaultTime,
+                    AveragePower = MediumIntervalValues.DefaultPower
+                },
+            };
+
+            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer);
             refiner.Refine();
 
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
@@ -372,7 +422,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 },
             };
 
-            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer, PowerZones);
+            IntervalsRefiner refiner = new IntervalsRefiner(intervalContainer, fitnessDataContainer);
             refiner.Refine();
 
             Assert.AreEqual(1, intervalContainer.Intervals.Count);

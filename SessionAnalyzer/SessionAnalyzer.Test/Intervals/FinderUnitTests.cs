@@ -26,6 +26,47 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
     public sealed class FinderUnitTests
     {
         /// <summary>
+        /// Verifies whith invalid power zones an exception is thrown.
+        /// </summary>
+        /// <remarks>
+        /// When giving an invalid power zone list to the constructor, 
+        /// an exception is thrown.
+        /// </remarks>
+        [TestMethod]
+        public void Short_PowerZones_ExceptionThrown()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.MaxPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+
+            List<CoreModels.Zone> powerZones = new List<CoreModels.Zone>{   // Doesn't have zone 7
+                new CoreModels.Zone { Id = 1, LowLimit = 0, HighLimit = 129},
+                new CoreModels.Zone { Id = 2, LowLimit = 130, HighLimit = NuleIntervalValues.MaxPower - 1},
+                new CoreModels.Zone { Id = 3, LowLimit = NuleIntervalValues.MaxPower, HighLimit = LongIntervalValues.MaxPower - 1},
+                new CoreModels.Zone { Id = 4, LowLimit = LongIntervalValues.MaxPower, HighLimit = MediumIntervalValues.MaxPower - 1},
+                new CoreModels.Zone { Id = 5, LowLimit = MediumIntervalValues.MaxPower, HighLimit = ShortIntervalValues.MaxPower - 1},
+                new CoreModels.Zone { Id = 6, LowLimit = ShortIntervalValues.MaxPower, HighLimit = ShortIntervalValues.MaxPower + 49},
+            };
+            try
+            {
+                IntervalsFinder finder = new IntervalsFinder(
+                    fitnessDataContainer, intervalContainer, powerZones,
+                    IntervalSeachGroups.Short, ShortThresholds
+                );
+                finder.Search();
+                Assert.Fail();
+            }
+            catch
+            {
+                Assert.IsTrue(true);
+            }
+        }
+
+        /// <summary>
         /// Verifies that no interval is found.
         /// </summary>
         /// <remarks>
@@ -82,6 +123,211 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             // Assertions
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate.AddSeconds(NuleIntervalValues.DefaultTime), intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(ShortIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
+        }
+
+        /// <summary>
+        /// Verifies that a short interval is found with short configuration (default thresholds).
+        /// </summary>
+        /// <remarks>
+        /// When searching with short configuration (default thresholds) in a session with one short interval,
+        /// the interval will be found.
+        /// </remarks>
+        [TestMethod]
+        public void ShortDefault_SingleShortInterval_Found()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Short
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(1, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate.AddSeconds(NuleIntervalValues.DefaultTime), intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(ShortIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
+        }
+
+        /// <summary>
+        /// Verifies that a short interval divided by a pause won't be found.
+        /// </summary>
+        /// <remarks>
+        /// When searching with short configuration in a session with one short interval
+        /// divided by a pause, the interval won't be found.
+        /// </remarks>
+        [TestMethod]
+        public void Short_DividedByPause_NotFound()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = 20, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = 0, Power = 10, HearRate = 0, Cadence = 0},       // 10 second session stop
+                new FitnessSection{ Time = 20, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 90},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Short, ShortThresholds
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(0, intervalContainer.Intervals.Count);
+        }
+
+        /// <summary>
+        /// Verifies that a short interval divided by a pause will be found in two.
+        /// </summary>
+        /// <remarks>
+        /// When searching with short configuration in a session with one short interval
+        /// divided by a pause, two intervals will be found.
+        /// </remarks>
+        [TestMethod]
+        public void Short_DividedByPause_TwoFound()
+        {
+            int pauseTime = 10;
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = 0, Power = pauseTime, HearRate = 0, Cadence = 0},       // 10 second session stop
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 90},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Short, ShortThresholds
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(2, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(ShortIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
+            // Second
+            Assert.AreEqual(DefaultStartDate.AddSeconds(ShortIntervalValues.DefaultTime + pauseTime), intervalContainer.Intervals[1].StartTime);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals[1].TimeDiff);
+            Assert.AreEqual(ShortIntervalValues.DefaultPower, intervalContainer.Intervals[1].AveragePower);
+        }
+
+        /// <summary>
+        /// Verifies that a short interval with a pause before its start is detected.
+        /// </summary>
+        /// <remarks>
+        /// When searching with short configuration in a session with one short interval
+        /// that has a pause a few seconds before the start, the interval will be found.
+        /// </remarks>
+        [TestMethod]
+        public void Short_PauseBeforeInterval_Found()
+        {
+            int pauseTime = 5;
+            int timeGap = 5;    // Time between pause and interval
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = 0, Power = pauseTime, HearRate = 0, Cadence = 0},       
+                new FitnessSection{ Time = timeGap, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 90},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Short, ShortThresholds
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(1, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate.AddSeconds(NuleIntervalValues.DefaultTime + pauseTime + timeGap), intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(ShortIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
+        }
+
+        /// <summary>
+        /// Verifies that a short interval with a pause after its end is detected.
+        /// </summary>
+        /// <remarks>
+        /// When searching with short configuration in a session with one short interval
+        /// that has a pause a few seconds after the end, the interval will be found.
+        /// </remarks>
+        [TestMethod]
+        public void Short_PauseAfterInterval_Found()
+        {
+            int pauseTime = 5;
+            int timeGap = 5;    // Time between pause and interval
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 90},
+                new FitnessSection{ Time = timeGap, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = 0, Power = pauseTime, HearRate = 0, Cadence = 0},
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Short, ShortThresholds
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(1, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(ShortIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
+        }
+
+        /// <summary>
+        /// Verifies that already saved intervals won't be saved again.
+        /// </summary>
+        /// <remarks>
+        /// When searching with short configuration in a session with one short interval,
+        /// if the found interval is already in the container, it won't be saved again.
+        /// </remarks>
+        [TestMethod]
+        public void Short_AlreadyFound_NotSaved()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            intervalContainer.Intervals.Add(new Interval()
+            {
+                StartTime = DefaultStartDate,
+                EndTime = DefaultStartDate.AddSeconds(ShortIntervalValues.DefaultTime - 1),
+                TimeDiff = ShortIntervalValues.DefaultTime,
+                AveragePower = ShortIntervalValues.DefaultPower
+            });
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Short, ShortThresholds
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(1, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
             Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
             Assert.AreEqual(ShortIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
         }
@@ -256,6 +502,75 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         }
 
         /// <summary>
+        /// Verifies that finds the exact point where the interval starts.
+        /// </summary>
+        /// <remarks>
+        /// Usually the tested intervals mantain the same power through the
+        /// interval period. This method tests if the finder can detect the exact 
+        /// start point even if the start power doesn't mantain constant.
+        /// </remarks>
+        [TestMethod]
+        public void Short_IrregularStart_Found()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = 2, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = 2, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},     // Should not be detected as part of the interval
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Short, ShortThresholds
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(1, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate.AddSeconds(NuleIntervalValues.DefaultTime + 4), intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(ShortIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
+        }
+
+        /// <summary>
+        /// Verifies that finds the exact point where the interval ends.
+        /// </summary>
+        /// <remarks>
+        /// Usually the tested intervals mantain the same power through the
+        /// interval period. This method tests if the finder can detect the exact 
+        /// end point even if the end power doesn't mantain constant.
+        /// </remarks>
+        [TestMethod]
+        public void Short_IrregularEnd_Found()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = 2, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85}, 
+                new FitnessSection{ Time = 2, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = 2, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},  // Should not be detected as part of the interval
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Short, ShortThresholds
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(1, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(ShortIntervalValues.DefaultTime + 4, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(ShortIntervalValues.DefaultPower - 1, intervalContainer.Intervals[0].AveragePower, 1);
+        }
+
+        /// <summary>
         /// Verifies that a short interval is not found with medium configuration.
         /// </summary>
         /// <remarks>
@@ -310,6 +625,38 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             // Assertions
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(MediumIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(MediumIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
+        }
+
+        /// <summary>
+        /// Verifies that a medium interval is found with medium configuration (default thresholds).
+        /// </summary>
+        /// <remarks>
+        /// When searching with medium configuration (default thresholds) in a session with one medium interval,
+        /// the interval will be found.
+        /// </remarks>
+        [TestMethod]
+        public void MediumDefault_SingleMediumInterval_Found()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = MediumIntervalValues.DefaultTime, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Medium
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(1, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate.AddSeconds(NuleIntervalValues.DefaultTime), intervalContainer.Intervals[0].StartTime);
             Assert.AreEqual(MediumIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
             Assert.AreEqual(MediumIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
         }
@@ -431,6 +778,41 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
 
             // Assertions
             int expectedPower = (MediumIntervalValues.DefaultTime * MediumIntervalValues.MaxPower * 2 + dropTime * LongIntervalValues.MaxPower) / (MediumIntervalValues.DefaultTime * 2 + dropTime);
+            Assert.AreEqual(1, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(MediumIntervalValues.DefaultTime * 2 + dropTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(expectedPower, intervalContainer.Intervals[0].AveragePower, 1);
+        }
+
+        /// <summary>
+        /// Verifies that a medium interval with a short critical power drop is found as one interval.
+        /// </summary>
+        /// <remarks>
+        /// When searching with medium configuration in a session with one medium interval
+        /// divided by a 5 second ~50% power drop, the finder will find the full interval.
+        /// </remarks>
+        [TestMethod]
+        public void Medium_MediumIntervalCriticalDrop_OneFound()
+        {
+            int dropTime = 20;
+            int dropPower = 135;
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = MediumIntervalValues.DefaultTime, Power = MediumIntervalValues.MaxPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = dropTime, Power = dropPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = MediumIntervalValues.DefaultTime, Power = MediumIntervalValues.MaxPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Medium, MediumThresholds
+            );
+            finder.Search();
+
+            // Assertions
+            int expectedPower = (MediumIntervalValues.DefaultTime * MediumIntervalValues.MaxPower * 2 + dropTime * dropPower) / (MediumIntervalValues.DefaultTime * 2 + dropTime);
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
             Assert.AreEqual(MediumIntervalValues.DefaultTime * 2 + dropTime, intervalContainer.Intervals[0].TimeDiff);
@@ -601,6 +983,38 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             // Assertions
             Assert.AreEqual(1, intervalContainer.Intervals.Count);
             Assert.AreEqual(DefaultStartDate, intervalContainer.Intervals[0].StartTime);
+            Assert.AreEqual(LongIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
+            Assert.AreEqual(LongIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
+        }
+
+        /// <summary>
+        /// Verifies that a long interval is found with long configuration (default thresholds).
+        /// </summary>
+        /// <remarks>
+        /// When searching with long configuration (default thresholds) in a session with one long interval,
+        /// the interval will be found.
+        /// </remarks>
+        [TestMethod]
+        public void LongDefault_SingleLongInterval_Found()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = LongIntervalValues.DefaultTime, Power = LongIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+                new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
+            };
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Long
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(1, intervalContainer.Intervals.Count);
+            Assert.AreEqual(DefaultStartDate.AddSeconds(NuleIntervalValues.DefaultTime), intervalContainer.Intervals[0].StartTime);
             Assert.AreEqual(LongIntervalValues.DefaultTime, intervalContainer.Intervals[0].TimeDiff);
             Assert.AreEqual(LongIntervalValues.DefaultPower, intervalContainer.Intervals[0].AveragePower);
         }
