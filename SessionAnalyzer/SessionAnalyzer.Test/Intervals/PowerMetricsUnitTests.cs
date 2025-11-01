@@ -57,5 +57,20 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             Assert.AreEqual(new DateTime(2025, 07, 14, 12, 00, 49), averages[11].PointDate);
             Assert.AreEqual(250, averages[11].AvrgPower);
         }
+
+        /// <summary>
+        /// Verifies that when a sessions point count is smaller
+        /// than the window size, a exception is thrown
+        /// </summary>
+        [TestMethod]
+        public void TooSmallSession()
+        {
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>
+            {
+                new FitnessSection{ Time = 5, Power = 150, HearRate = 120, Cadence = 85}
+            };
+            List<FitnessData> _fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            Assert.ThrowsException<ArgumentException>(() => PowerMetricsCalculator.CalculateMovingAverages(_fitnessData, 10, new IntervalContainer()));
+        }
     }
 }

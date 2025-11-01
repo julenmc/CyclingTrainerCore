@@ -4,7 +4,6 @@ using CyclingTrainer.SessionAnalyzer.Test.Models;
 using CyclingTrainer.SessionAnalyzer.Constants;
 using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionAnalyzer.Services.Intervals;
-using static CyclingTrainer.SessionAnalyzer.Test.Constants.FitnessDataCreation;
 using static CyclingTrainer.SessionAnalyzer.Test.Intervals.IntervalsTestConstants;
 using NLog;
 
@@ -159,6 +158,17 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             AssertThrowsForThreshold(init.service, init.defaultThresholds, t => t.Long.Range = IntervalSearchValues.LongIntervals.Max.Range * 1.01f);
             AssertThrowsForThreshold(init.service, init.defaultThresholds, t => t.Long.MaRel = IntervalSearchValues.LongIntervals.Min.MaRel * 0.99f);
             AssertThrowsForThreshold(init.service, init.defaultThresholds, t => t.Long.MaRel = IntervalSearchValues.LongIntervals.Max.MaRel * 1.01f);
+        }
+
+        [TestMethod]
+        public void ValidThresholds_SetSuccessfully()
+        {
+            var init = ThresholdExceptionSetup();
+            var defaultThresholds = init.defaultThresholds;
+            
+            init.service.SetThresholds(defaultThresholds);
+            
+            var result = init.service.Search();
         }
     }
 }

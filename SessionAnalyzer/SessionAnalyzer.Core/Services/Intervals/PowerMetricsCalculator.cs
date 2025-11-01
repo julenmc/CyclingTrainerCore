@@ -11,9 +11,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
         internal static List<PowerMetrics> CalculateMovingAverages(List<FitnessData> points, int windowSize, IntervalContainer container)
         {
             if (points.Count < windowSize)
-                throw new Exception($"Point count ({points.Count}) is smaller than the window size {windowSize}");
-            if (points == null || !points.Any() || windowSize <= 0)
-                    return new List<PowerMetrics>();
+                throw new ArgumentException(nameof(points), $"Point count ({points.Count}) is smaller than the window size {windowSize}");
 
             var result = new List<PowerMetrics>();
             var powerValues = new Queue<int>();

@@ -76,10 +76,10 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             // Check if thresholds are inside the limits
             bool CheckThresholds(Thresholds thresholds, IntervalThresholdValues limits)
             {
-                return (thresholds.CvStart >= limits.Min.CvStart && thresholds.CvStart <= limits.Max.CvStart) &&
-                       (thresholds.CvFollow >= limits.Min.CvFollow && thresholds.CvFollow <= limits.Max.CvFollow) &&
-                       (thresholds.Range >= limits.Min.Range && thresholds.Range <= limits.Max.Range) &&
-                       (thresholds.MaRel >= limits.Min.MaRel && thresholds.MaRel <= limits.Max.MaRel);
+                return thresholds.CvStart >= limits.Min.CvStart && thresholds.CvStart <= limits.Max.CvStart &&
+                       thresholds.CvFollow >= limits.Min.CvFollow && thresholds.CvFollow <= limits.Max.CvFollow &&
+                       thresholds.Range >= limits.Min.Range && thresholds.Range <= limits.Max.Range &&
+                       thresholds.MaRel >= limits.Min.MaRel && thresholds.MaRel <= limits.Max.MaRel;
             }
             if (!CheckThresholds(thresholds.Short, IntervalSearchValues.ShortIntervals))
             {
