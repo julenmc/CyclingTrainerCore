@@ -51,19 +51,15 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
                 new CoreModels.Zone { Id = 5, LowLimit = MediumIntervalValues.MaxPower, HighLimit = ShortIntervalValues.MaxPower - 1},
                 new CoreModels.Zone { Id = 6, LowLimit = ShortIntervalValues.MaxPower, HighLimit = ShortIntervalValues.MaxPower + 49},
             };
-            try
+            
+            void AuxMethod()
             {
                 IntervalsFinder finder = new IntervalsFinder(
                     fitnessDataContainer, intervalContainer, powerZones,
                     IntervalSeachGroups.Short, ShortThresholds
                 );
-                finder.Search();
-                Assert.Fail();
             }
-            catch
-            {
-                Assert.IsTrue(true);
-            }
+            Assert.ThrowsException<ArgumentException>(() => AuxMethod());
         }
 
         /// <summary>
@@ -240,7 +236,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
                 new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = 0, Power = pauseTime, HearRate = 0, Cadence = 0},       
+                new FitnessSection{ Time = 0, Power = pauseTime, HearRate = 0, Cadence = 0},
                 new FitnessSection{ Time = timeGap, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
                 new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 90},
             };
@@ -549,7 +545,7 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             List<FitnessSection> fitnessTestSections = new List<FitnessSection>
             {
                 new FitnessSection{ Time = ShortIntervalValues.DefaultTime, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
-                new FitnessSection{ Time = 2, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85}, 
+                new FitnessSection{ Time = 2, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
                 new FitnessSection{ Time = 2, Power = ShortIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
                 new FitnessSection{ Time = 2, Power = MediumIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},  // Should not be detected as part of the interval
                 new FitnessSection{ Time = NuleIntervalValues.DefaultTime, Power = NuleIntervalValues.DefaultPower, HearRate = 120, Cadence = 85},
@@ -928,6 +924,41 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
             Assert.AreEqual(DefaultStartDate.AddSeconds(MediumIntervalValues.DefaultTime + liftTime), intervalContainer.Intervals[1].StartTime);
             Assert.AreEqual(MediumIntervalValues.DefaultTime, intervalContainer.Intervals[1].TimeDiff);
             Assert.AreEqual(MediumIntervalValues.DefaultPower, intervalContainer.Intervals[1].AveragePower);
+        }
+
+        /// <summary>
+        /// Verifies that an unstable interval won't be found.
+        /// </summary>
+        /// <remarks>
+        /// With the average power and size of the interval, the intervals should 
+        /// be detected. But given its changes, it can't be found.
+        /// </remarks>
+        [TestMethod]
+        public void Medium_UnstableMedium_Found()
+        {
+            int totalChanges = 6;
+            int constantPowerTime = 30;
+            List<FitnessSection> fitnessTestSections = new List<FitnessSection>();
+            for (int i = 0; i < totalChanges; i++)
+            {
+                fitnessTestSections.Add(
+                    new FitnessSection { Time = constantPowerTime, Power = ShortIntervalValues.MinPower, HearRate = 120, Cadence = 85 }
+                    );
+                fitnessTestSections.Add(
+                    new FitnessSection { Time = constantPowerTime, Power = LongIntervalValues.MinPower, HearRate = 120, Cadence = 85 }
+                    );
+            }
+            List<FitnessData> fitnessData = FitnessDataService.SetData(fitnessTestSections);
+            FitnessDataContainer fitnessDataContainer = new FitnessDataContainer(fitnessData);
+            IntervalContainer intervalContainer = new IntervalContainer();
+            IntervalsFinder finder = new IntervalsFinder(
+                fitnessDataContainer, intervalContainer, PowerZones,
+                IntervalSeachGroups.Medium, MediumThresholds
+            );
+            finder.Search();
+
+            // Assertions
+            Assert.AreEqual(0, intervalContainer.Intervals.Count);
         }
 
         /// <summary>

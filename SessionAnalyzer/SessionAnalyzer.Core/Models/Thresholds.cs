@@ -15,7 +15,7 @@ namespace CyclingTrainer.SessionAnalyzer.Models
             MaRel = maRel;
         }
 
-        public Thresholds() {}
+        public Thresholds() { }
     }
 
     public class IntervalThresholdValues
@@ -23,5 +23,12 @@ namespace CyclingTrainer.SessionAnalyzer.Models
         public Thresholds Max { get; set; } = new();
         public Thresholds Min { get; set; } = new();
         public Thresholds Default { get; set; } = new();
+    }
+
+    public class IntervalGroupThresholds
+    {
+        public Thresholds Short { get; set; } = new();
+        public Thresholds Medium { get; set; } = new();
+        public Thresholds Long { get; set; } = new();
     }
 }

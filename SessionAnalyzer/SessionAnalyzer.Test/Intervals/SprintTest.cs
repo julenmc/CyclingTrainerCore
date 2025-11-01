@@ -88,31 +88,23 @@ namespace CyclingTrainer.SessionAnalyzer.Test.Intervals
         [TestMethod]
         public void InputErrorMinTime()
         {
-            try
+            FitnessDataContainer container = new FitnessDataContainer(new List<FitnessData>());
+            void AuxMethod()
             {
-                FitnessDataContainer container = new FitnessDataContainer(new List<FitnessData>());
                 SprintService service = new SprintService(container, -1, 550, 500);
-                Assert.Fail();
             }
-            catch (Exception ex)
-            {
-                Assert.IsTrue(ex.Message.Contains("Minimum sprint time must be positive"));
-            }
+            Assert.ThrowsException<ArgumentException>(() => AuxMethod());
         }
 
         [TestMethod]
         public void InputErrorHysteresis()
         {
-            try
+            FitnessDataContainer container = new FitnessDataContainer(new List<FitnessData>());
+            void AuxMethod()
             {
-                FitnessDataContainer container = new FitnessDataContainer(new List<FitnessData>());
-                SprintService service = new SprintService(container, -1, 500, 550);
-                Assert.Fail();
+                SprintService service = new SprintService(container, 10, 500, 550);
             }
-            catch (Exception ex)
-            {
-                Assert.IsTrue(ex.Message.Contains("Start trigger must be greater than end trigger for hysteresis to work"));
-            }
+            Assert.ThrowsException<ArgumentException>(() => AuxMethod());
         }
     }
 }

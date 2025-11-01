@@ -35,7 +35,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             CoreModels.Zone? lowZone = powerZones.Find(x => x.Id == IntervalZones.SearchRequiredZones[_searchGroup]);
             if (highZone == null || lowZone == null)
             {
-                throw new Exception("Invalid power zones");
+                throw new ArgumentException("Invalid power zones");
             }
             _startThresholdPowerZone = new CoreModels.Zone
             {
@@ -203,6 +203,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
 
         private void RefineIntervalLimits(Interval interval, List<FitnessData> points)
         {
+            Log.Debug("Refining interval limits");
             // Encontrar el índice del punto inicial y final del intervalo en la lista completa
             int intervalStartIdx = points.FindIndex(p => p.Timestamp.GetDateTime() >= interval.StartTime);
             int intervalEndIdx = points.FindLastIndex(p => p.Timestamp.GetDateTime() <= interval.EndTime);
@@ -221,7 +222,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             int auxIndex = 1;
             while (auxIndex < expandedEndPoints.Count)
             {
-                if ((int)(expandedEndPoints[auxIndex].Timestamp.GetDateTime() - expandedEndPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1 && 
+                if ((int)(expandedEndPoints[auxIndex].Timestamp.GetDateTime() - expandedEndPoints[auxIndex - 1].Timestamp.GetDateTime()).TotalSeconds > 1 &&
                     !_intervalContainer.IsTheGapASprint(expandedEndPoints[auxIndex].Timestamp.GetDateTime()))
                 {
                     expandedEndIdx = auxIndex + intervalEndIdx - 1;
@@ -257,8 +258,8 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                 startIndex--;
             }
 
-            // Buscar hacia adelante si es necesario
-            while (/*startIndex < expandedPoints.Count - 1 &&*/ // I understand that it can't reach the end of the expandedPoint because it's inside the interval
+            // Look if the real start of the interval is inside the actual limits
+            while (startIndex < expandedPoints.Count - 1 &&
                    Math.Abs((expandedPoints[startIndex].Stats.Power ?? 0) - targetPower) > allowedDeviation)
             {
                 startIndex++;
@@ -277,8 +278,8 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             //     endIndex++;
             // }
 
-            // Buscar hacia atrás si es necesario
-            while (/*endIndex > startIndex &&*/     // I understand that it can't reach the end of the expandedPoint because it's inside the interval
+            // Look if the real start of the interval is inside the actual limits
+            while (endIndex > startIndex &&
                    Math.Abs((expandedPoints[endIndex].Stats.Power ?? 0) - targetPower) > allowedDeviation)
             {
                 endIndex--;
@@ -306,6 +307,15 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                         .Select(p => p.Stats.Power ?? 0);
                     interval.AveragePower = (float)powers.Average();
                 }
+            }
+            else if (startIndex == endIndex)    // Means the interval is not valid, return an invalid interval so it can be refused
+            {
+                Log.Debug($"Invalid interval, returning nule values. Original: {interval.StartTime.TimeOfDay}-{interval.EndTime.TimeOfDay} ({interval.TimeDiff}s) at {interval.AveragePower}W");
+                var newStartTime = expandedPoints[startIndex].Timestamp.GetDateTime();
+                interval.StartTime = newStartTime;
+                interval.EndTime = newStartTime.AddSeconds(1);
+                interval.TimeDiff = 1;
+                interval.AveragePower = 0;
             }
         }
     }
