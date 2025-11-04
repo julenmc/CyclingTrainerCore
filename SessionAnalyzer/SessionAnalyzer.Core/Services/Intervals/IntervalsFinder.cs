@@ -76,7 +76,7 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
             var remainingPoints = _fitnessDataContainer.FitnessData;
 
             // Calcular medias móviles para diferentes ventanas de tiempo
-            Log.Info("Calculating moving averages...");
+            Log.Debug("Calculating moving averages...");
             var powerModels = PowerMetricsCalculator.CalculateMovingAverages(remainingPoints, _windowSize, _intervalContainer);
             Log.Debug($"Generated {powerModels.Count} power models");
 
