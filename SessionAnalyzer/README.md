@@ -20,6 +20,8 @@ Estas son las principales funcionalidades de la biblioteca:
     * Probar si durante el refinado se pueden perder sprints.
     * Añadir intervalos nulos / descansos al final. Así la sesión completa estará dividida en intervalos.
     * Explicar en la documentación el funcionamiento de la búsqueda de intervalos en función de las zonas de potencia.
+* Meter la búsqueda de puertos en este módulo (actualmente en el de lectura).
+* Eliminar el modelo de intervalos y utilizar el del core.
 
 ## Known issues
 * En el test de la consola el intervalo de las 15:54:00 y el de las 15:59:42 no tienen sentido, empiezan más tarde de lo que deberían. Los intervalos cortos anteriores y posteriores no tienen el mismo problema.
