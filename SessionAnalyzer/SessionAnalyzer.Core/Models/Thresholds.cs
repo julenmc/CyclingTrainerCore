@@ -16,6 +16,17 @@ namespace CyclingTrainer.SessionAnalyzer.Models
         }
 
         public Thresholds() { }
+
+        public Thresholds Copy()
+        {
+            return new Thresholds
+            {
+                CvStart = this.CvStart,
+                CvFollow = this.CvFollow,
+                Range = this.Range,
+                MaRel = this.MaRel,
+            };
+        }
     }
 
     public class IntervalThresholdValues
