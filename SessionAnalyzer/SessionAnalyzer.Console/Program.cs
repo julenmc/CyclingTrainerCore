@@ -15,7 +15,7 @@ namespace CyclingTrainer.SessionAnalyzer.Console
         {
             Logger.Info("Start Session Analyzer Test");
 
-            SessionContainer container = SessionReaderService.ReadRoute(@"Resources/19622171318_ACTIVITY.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
+            SessionContainer container = SessionReaderService.ReadRoute(@"Resources/Zwift_Race_After_Party_Race_by_PETA_Z_C_on_NYC_KOM_After_Party_in_New_York.fit"); //aranguren 19652409585_ACTIVITY 19622171318_ACTIVITY 
                                                                                 // Session session = DataAnalyzeService.AnalyzeData();
             List<CoreModels.Zone> powerZones = new List<CoreModels.Zone>{
                 new CoreModels.Zone { Id = 1, LowLimit = 0, HighLimit = 129},
@@ -26,7 +26,8 @@ namespace CyclingTrainer.SessionAnalyzer.Console
                 new CoreModels.Zone { Id = 6, LowLimit = 310, HighLimit = 379},
                 new CoreModels.Zone { Id = 7, LowLimit = 380, HighLimit = 2000}
             };
-            List<Models.Interval> intervals = IntervalsService.Search(container.FitnessDataContainer.FitnessData, powerZones);
+            IntervalsService service = new IntervalsService(container.FitnessDataContainer.FitnessData, powerZones);
+            List<Models.Interval> intervals = service.Search().Intervals;
             LogIntervals(intervals);
 
             // IntervalsService.DetectionThresholds thr = new IntervalsService.DetectionThresholds

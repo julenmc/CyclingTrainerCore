@@ -56,8 +56,11 @@ namespace CyclingTrainer.SessionAnalyzer.Services.Intervals
                         try
                         {
                             Interval merged = MergeIntervals(_intervalContainer.Intervals[i], _intervalContainer.Intervals[j]);
-                            _intervalContainer.Intervals.Insert(j, merged); // Inserted before the second interval to mantain the chronological order
-                            j++;                                            // Merged interval is inserted before the second, so j must be incremented so it doesn't compare the same intervals 
+                            // Remove the interval with lower power and replace it with the merged one
+                            if (_intervalContainer.Intervals[i].AveragePower > _intervalContainer.Intervals[j].AveragePower) _intervalContainer.Intervals[j] = merged;
+                            else _intervalContainer.Intervals[i] = merged;
+                            // _intervalContainer.Intervals.Insert(j, merged); // Inserted before the second interval to mantain the chronological order
+                            // j++;                                            // Merged interval is inserted before the second, so j must be incremented so it doesn't compare the same intervals 
                         }
                         catch (MergeExpection ex)
                         {
